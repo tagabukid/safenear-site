@@ -86,7 +86,7 @@ tr.me td{background:var(--arc-soft)}
 .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .lnk{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;text-decoration:none;color:var(--ink)}
 .lnk:hover{border-color:var(--arc);color:var(--arc)}
-.dlg{max-height:88vh;overflow:auto}
+.dlg{max-height:88vh;overflow-y:auto;overflow-x:hidden}
 .dlg textarea{background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical;min-height:64px;font:inherit;color:inherit}
 .dlg .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
 .dlg .two > label{min-width:0}
@@ -100,6 +100,62 @@ tr.me td{background:var(--arc-soft)}
 .sr{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .fieldset-title{font:600 14px var(--body);margin-top:4px}
 .devnote{font-size:12px;color:var(--muted);font-weight:400}
+.feebox{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.frow{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;font-size:14px;font-weight:600}
+.feebox .chip{padding:5px 11px}
+.feebox input{background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:9px 12px}
+.split{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:13px;font-weight:600}
+.split i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.mkt-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.mkt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.mkt-tok{display:flex;align-items:center;gap:10px;min-width:0}
+.mkt-tok img,.mkt-tok .ph{width:28px;height:28px;border-radius:50%;flex:none;object-fit:cover;background:var(--arc-soft)}
+.mkt-tok b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.mkt-row{cursor:pointer} .mkt-row:hover td{background:var(--arc-soft)}
+.up{color:var(--good);font-weight:600} .down{color:var(--bad);font-weight:600}
+td.num,th.num{text-align:right;white-space:nowrap}
+@media (max-width:640px){.mkt-hide{display:none}}
+.navlink{color:var(--muted);text-decoration:none;font-weight:600;font-size:14px}
+.navlink:hover{color:var(--arc)}
+/* views */
+.offview{display:none!important}
+body[data-view="feed"] .wrap, body[data-view="market"] .wrap{grid-template-columns:1fr;max-width:900px}
+.topnav{display:flex;gap:4px;margin-left:8px}
+.topnav button{border:0;background:none;padding:8px 12px;border-radius:999px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer}
+.topnav button[aria-current="page"]{color:var(--ink);background:var(--arc-soft)}
+.bnav{display:none}
+@media (max-width:900px){
+  .topnav{display:none}
+  .bnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:15;background:rgba(6,20,23,.96);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
+  .bnav button{border:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:600;padding:6px 0;cursor:pointer}
+  .bnav button[aria-current="page"]{color:var(--arc)}
+  .bnav svg{width:22px;height:22px}
+  body{padding-bottom:76px}
+  #createBtn,#netLabel,#netDot{display:none}
+  .top{gap:10px;flex-wrap:nowrap}
+  .brand{font-size:20px} .brand img{width:34px;height:34px}
+  #connectBtn{padding:8px 14px;font-size:14px;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+  #toast{bottom:88px}
+}
+/* feed */
+.feed-tools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px}
+.seg button{border:0;background:none;padding:7px 14px;border-radius:999px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.minsize{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);font-weight:600}
+.minsize input{width:74px;background:var(--bg);border:1.5px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--ink)}
+.fitem{display:grid;grid-template-columns:44px 1fr auto;gap:4px 12px;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line)}
+.fitem:last-child{border-bottom:0}
+.fitem .ticon{width:44px;height:44px;font-size:15px;box-shadow:0 0 0 1px var(--line)}
+.fline{font-size:15px;line-height:1.35;min-width:0;overflow-wrap:anywhere}
+.fline .who{color:var(--arc);font-weight:600}
+.fline .b{color:var(--good);font-weight:700} .fline .s{color:var(--bad);font-weight:700}
+.fline .amt{font-weight:700}
+.fmeta{font-size:13px;color:var(--muted);margin-top:2px}
+.fside{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.fside .when{font-size:12px;color:var(--muted)}
+.tradebtn{border:1.5px solid var(--line);background:none;border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;letter-spacing:.06em;cursor:pointer}
+.tradebtn:hover{border-color:var(--arc);color:var(--arc)}
 .total{display:flex;justify-content:space-between;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
 .grad{padding:14px;border-radius:10px;background:#2A2410;border:1px solid var(--gold);font-size:14px}
 table{width:100%;border-collapse:collapse;font-size:14px}
@@ -128,6 +184,11 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
   <div class="brand">
     <img src="data:image/webp;base64,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" alt=""><span>Safe<b>Near</b></span>
   </div>
+  <nav class="topnav" aria-label="Sections">
+    <button data-view="board" aria-current="page">Board</button>
+    <button data-view="feed">Feed</button>
+    <button data-view="market">NEAR Market</button>
+  </nav>
   <div class="net"><span class="netchip" id="netChip">Testnet</span><span class="dot" id="netDot"></span><span id="netLabel">NEAR</span></div>
   <button class="btn ghost" id="createBtn">Create token</button>
   <button class="btn" id="connectBtn">Connect wallet</button>
@@ -139,20 +200,20 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
 <div class="banner hidden" id="previewBanner">Preview mode: this is sample data so you can see the layout. Set <b>CONFIG.factory</b> to your deployed factory account to go live.</div>
 
 <div class="wrap">
-  <aside class="panel">
+  <aside class="panel" data-views="board">
     <h2>Tokens</h2>
     <input class="search" id="search" placeholder="Search name or ticker" aria-label="Search tokens">
     <div class="list" id="list"><p class="muted small">Loading tokens…</p></div>
   </aside>
 
   <main class="main">
-    <section class="panel empty hidden" id="empty">
+    <section class="panel empty hidden" id="empty" data-views="board">
       <h1>Launch safely on NEAR</h1>
       <p id="emptyMsg">Every token starts on a NEAR bonding curve. When the curve fills, liquidity moves to a Ref Finance pool.</p>
       <button class="btn arc" id="emptyCreate">Create token</button>
     </section>
 
-    <div class="hero hidden" id="tokenView">
+    <div class="hero hidden" id="tokenView" data-views="board">
       <section class="panel">
         <div class="thead">
           <span class="ticon" id="tIcon"></span>
@@ -163,6 +224,7 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
         <div class="facts">
           <div><span>Price</span><strong id="tPrice">--</strong></div>
           <div><span>Tax</span><strong id="tTax">--</strong></div>
+          <div><span>Tax goes to</span><strong id="tSplit">--</strong></div>
           <div><span>Creator</span><strong id="tCreator">--</strong></div>
           <div><span>Dev bought</span><strong id="tDev">--</strong></div>
           <div><span>Contract</span><strong><a id="tAddr" target="_blank" rel="noopener">--</a></strong></div>
@@ -198,7 +260,7 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
       </section>
     </div>
 
-    <section class="panel hidden" id="tapeBox">
+    <section class="panel hidden" id="tapeBox" data-views="board">
       <h2>Recent trades</h2>
       <div class="scroll"><table>
         <thead><tr><th>Side</th><th>NEAR</th><th>Tokens</th><th>Account</th><th>When</th></tr></thead>
@@ -206,7 +268,40 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
       </table></div>
     </section>
 
-    <section class="panel" id="pointsBox">
+    <section class="panel" id="feedBox" data-views="feed">
+      <h2 style="margin-bottom:4px">Feed</h2>
+      <p class="muted small" style="margin-bottom:14px">Every buy and sell across SafeNear tokens, as it happens.</p>
+      <div class="feed-tools">
+        <div class="seg" id="feedSeg">
+          <button data-f="all" aria-pressed="true">Everyone</button>
+          <button data-f="big" aria-pressed="false">Big buys</button>
+          <button data-f="mine" aria-pressed="false">Mine</button>
+        </div>
+        <label class="minsize">Min size <input id="feedMin" inputmode="decimal" placeholder="0"> NEAR</label>
+      </div>
+      <div id="feedList"><p class="muted">Loading trades…</p></div>
+    </section>
+
+    <section class="panel" id="marketBox" data-views="market">
+      <div class="mkt-head">
+        <div>
+          <h2 style="margin-bottom:4px">NEAR Market</h2>
+          <p class="muted small">Live tokens trading on NEAR mainnet right now. Read-only: tap a token to see it, trading happens on Rhea.</p>
+        </div>
+        <div class="mkt-tabs" id="mktTabs">
+          <button class="chip" data-k="trending_pools" aria-pressed="true">Trending</button>
+          <button class="chip" data-k="pools" aria-pressed="false">Top volume</button>
+          <button class="chip" data-k="new_pools" aria-pressed="false">New</button>
+        </div>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>#</th><th>Token</th><th class="num">Price</th><th class="num">24h</th><th class="num mkt-hide">Volume 24h</th><th class="num mkt-hide">Liquidity</th></tr></thead>
+        <tbody id="mktBody"><tr><td colspan="6" class="muted">Loading NEAR market…</td></tr></tbody>
+      </table></div>
+      <p class="note" id="mktSrc"></p>
+    </section>
+
+    <section class="panel" id="pointsBox" data-views="board">
       <h2>Airdrop points</h2>
       <div class="pts-top">
         <div class="stat"><span class="muted small">Your points</span><b id="myPts">--</b></div>
@@ -228,6 +323,13 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
   </main>
 </div>
 
+<nav class="bnav" aria-label="Sections">
+  <button data-view="board" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Board</button>
+  <button data-view="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Feed</button>
+  <button data-action="launch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2M9 12a22 22 0 0 1 11-9c0 4-2 8-9 11zM9 12l3 3M14 6.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0"/></svg>Launch</button>
+  <button data-view="market"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>Market</button>
+</nav>
+
 <dialog id="createDlg">
   <form class="dlg" id="createForm">
     <h2 style="margin:0">Create a token</h2>
@@ -248,10 +350,45 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
       <label>X (Twitter)<input id="cX" placeholder="@safepenguin"></label>
       <label>Telegram<input id="cTg" placeholder="@safepenguin"></label>
     </div>
-    <div class="two">
-      <label>Trade tax (%)<input id="cTax" type="number" min="0" step="0.1" value="1"></label>
-      <label>Buy at launch (NEAR)<input id="cDev" inputmode="decimal" placeholder="0"></label>
+    <div class="fieldset-title">Fees <span class="devnote">(locked at launch)</span></div>
+    <div class="feebox">
+      <div class="frow"><span>Fees go to</span>
+        <div class="chips" data-group="dest">
+          <button type="button" class="chip" data-v="self" aria-pressed="true">Your wallet</button>
+          <button type="button" class="chip" data-v="other" aria-pressed="false">Another wallet</button>
+        </div>
+      </div>
+      <input id="cFeeWallet" class="hidden" placeholder="wallet.testnet" autocomplete="off" aria-label="Fee wallet">
+      <div class="frow"><span>Buy tax</span>
+        <div class="chips" data-group="buy">
+          <button type="button" class="chip" data-v="0" aria-pressed="false">Off</button>
+          <button type="button" class="chip" data-v="100" aria-pressed="true">1%</button>
+          <button type="button" class="chip" data-v="200" aria-pressed="false">2%</button>
+          <button type="button" class="chip" data-v="300" aria-pressed="false">3%</button>
+          <button type="button" class="chip" data-v="400" aria-pressed="false">4%</button>
+        </div>
+      </div>
+      <div class="frow"><span>Sell tax</span>
+        <div class="chips" data-group="sell">
+          <button type="button" class="chip" data-v="0" aria-pressed="false">Off</button>
+          <button type="button" class="chip" data-v="100" aria-pressed="true">1%</button>
+          <button type="button" class="chip" data-v="200" aria-pressed="false">2%</button>
+          <button type="button" class="chip" data-v="300" aria-pressed="false">3%</button>
+          <button type="button" class="chip" data-v="400" aria-pressed="false">4%</button>
+        </div>
+      </div>
+      <div class="frow"><span>Tax goes to</span>
+        <div class="chips" data-group="split">
+          <button type="button" class="chip" data-v="0" aria-pressed="false">All to wallet</button>
+          <button type="button" class="chip" data-v="5000" aria-pressed="true">Balanced</button>
+          <button type="button" class="chip" data-v="7500" aria-pressed="false">Burn heavy</button>
+          <button type="button" class="chip" data-v="10000" aria-pressed="false">All burned</button>
+        </div>
+      </div>
+      <div class="split" id="cSplit"></div>
+      <p class="devnote" style="margin:0">Burned tax stays in the curve without creating tokens, so the price goes up for every holder. Your buy at launch is never taxed.</p>
     </div>
+    <label>Buy at launch (NEAR)<input id="cDev" inputmode="decimal" placeholder="0"></label>
     <p class="devnote">Buy at launch is your own first buy, made in the same transaction. No tax, capped at 5% of supply, and any unused NEAR comes back to you. Everyone can see how much you bought.</p>
     <div class="total"><span class="muted">You pay</span><strong id="cTotal">--</strong></div>
     <p class="muted small" id="cFee"></p>
@@ -284,8 +421,9 @@ const NETWORKS = {
 };
 const CONFIG = {
   networkId: params.get("network") === "mainnet" ? "mainnet" : "testnet",
-  factory: params.get("factory") || "testnettestes.testnet",   // e.g. "safenear.testnet"
-  maxTaxBps: 1000,                          // 10% cap, match the contract
+  // Factory per network. Fill in mainnet after the mainnet deploy (or use ?network=mainnet&factory=...).
+  factory: params.get("factory") || (params.get("network") === "mainnet" ? "" : "testnettestes.testnet"),   // e.g. "safenear.testnet"
+  maxTaxBps: 400,                           // 4% a side, match the contract
   listLimit: 40,
   tradeGas: "100000000000000",              // 100 Tgas
   createGas: "300000000000000",             // 300 Tgas (deploys a sub-account contract)
@@ -300,12 +438,12 @@ const PREVIEW = !CONFIG.factory;
      view  get_tokens_count() -> u64
      view  get_tokens({from_index, limit}) -> [{ token_id, name, symbol, creator }]
      view  get_creation_fee() -> U128   (yoctoNEAR, includes storage for the token contract)
-     call  create_token({ name, symbol, tax_bps, icon, description, website, twitter, telegram })
+     call  create_token({ name, symbol, buy_tax_bps, sell_tax_bps, fee_recipient, burn_bps, icon, description, website, twitter, telegram })
            + deposit = creation fee + optional buy at launch
      view  (token) get_info() -> { icon, description, website, twitter, telegram, dev_buy_tokens }
    Token (NEP-141 + bonding curve), one sub-account per token:
      view  ft_metadata(), ft_balance_of({account_id}), storage_balance_of({account_id}), storage_balance_bounds()
-     view  get_curve() -> { near_reserve, graduation_threshold, graduated, tax_bps, creator, price, pool_id }
+     view  get_curve() -> { near_reserve, graduation_threshold, graduated, buy_tax_bps, sell_tax_bps, burn_bps, fee_recipient, creator, price, pool_id }
            price = yoctoNEAR per 1 whole token
      view  get_buy_quote({ near_in }) -> U128 tokens
      view  get_sell_quote({ tokens_in }) -> U128 yoctoNEAR
@@ -327,7 +465,7 @@ const B = (v) => { try { return BigInt(v ?? 0); } catch { return 0n; } };
 function fmtU(v, dec, frac = 4) {
   v = B(v); const base = 10n ** BigInt(dec);
   const i = v / base; let f = (v % base).toString().padStart(dec, "0").slice(0, frac).replace(/0+$/, "");
-  if (i === 0n && !f && v > 0n) return "<0." + "0".repeat(frac - 1) + "1";
+  if (i === 0n && !f && v > 0n) return frac > 0 ? "<0." + "0".repeat(frac - 1) + "1" : "<1";
   return i.toLocaleString() + (f ? "." + f : "");
 }
 function parseU(str, dec) {
@@ -501,11 +639,11 @@ const DEMO_INFO = {
   "bull.safenear.testnet": { icon: null, description: "", dev_buy_tokens: String(10n * 10n ** 24n) },
 };
 const DEMO = [
-  { token_id: "dash.safenear.testnet", name: "Dash Runner", symbol: "DASH", creator: "tagabukid.testnet", curve: { near_reserve: Y(612), graduation_threshold: Y(1000), graduated: false, tax_bps: 100, price: Y(0.0000041) } },
-  { token_id: "pengu.safenear.testnet", name: "Safe Penguin", symbol: "PENGU", creator: "tagabukid.testnet", curve: { near_reserve: Y(1000), graduation_threshold: Y(1000), graduated: true, tax_bps: 200, price: Y(0.0000088), pool_id: 0 } },
-  { token_id: "bull.safenear.testnet", name: "Near Bull", symbol: "BULL", creator: "someone.testnet", curve: { near_reserve: Y(87.5), graduation_threshold: Y(1000), graduated: false, tax_bps: 0, price: Y(0.0000012) } },
+  { token_id: "dash.safenear.testnet", name: "Dash Runner", symbol: "DASH", creator: "tagabukid.testnet", curve: { near_reserve: Y(612), graduation_threshold: Y(1000), graduated: false, buy_tax_bps: 100, sell_tax_bps: 100, burn_bps: 5000, fee_recipient: "tagabukid.testnet", price: Y(0.0000041) } },
+  { token_id: "pengu.safenear.testnet", name: "Safe Penguin", symbol: "PENGU", creator: "tagabukid.testnet", curve: { near_reserve: Y(1000), graduation_threshold: Y(1000), graduated: true, buy_tax_bps: 200, sell_tax_bps: 300, burn_bps: 10000, fee_recipient: "tagabukid.testnet", price: Y(0.0000088), pool_id: 0 } },
+  { token_id: "bull.safenear.testnet", name: "Near Bull", symbol: "BULL", creator: "someone.testnet", curve: { near_reserve: Y(87.5), graduation_threshold: Y(1000), graduated: false, buy_tax_bps: 0, sell_tax_bps: 0, burn_bps: 0, fee_recipient: "someone.testnet", price: Y(0.0000012) } },
 ];
-const demoTrades = () => Array.from({ length: 8 }, (_, i) => ({ side: i % 3 ? "buy" : "sell", account_id: ["ana.testnet", "ben.testnet", "carlo.testnet"][i % 3], near_amount: Y(3 + i * 1.7), token_amount: Y(3 + i * 1.7) * 240000n, timestamp_ms: Date.now() - i * 410000 }));
+const demoTrades = () => Array.from({ length: 8 }, (_, i) => ({ side: i % 3 ? "buy" : "sell", account_id: ["ana.testnet", "ben.testnet", "carlo.testnet"][i % 3], near_amount: Y(3 + i * 1.7), token_amount: Y(3 + i * 1.7) / 4n, timestamp_ms: Date.now() - i * 410000 }));
 
 /* ---------------- token list ---------------- */
 async function loadTokens() {
@@ -587,7 +725,10 @@ async function refreshSelected() {
   const devT = B(info.dev_buy_tokens);
   $("#tDev").textContent = devT > 0n ? (Number(devT * 10000n / TOTAL_SUPPLY) / 100).toFixed(2) + "% of supply" : "Nothing";
   $("#tPrice").textContent = sel.price != null ? fmtU(sel.price, NEAR_DEC, 8) + " NEAR" : "--";
-  $("#tTax").textContent = sel.tax_bps != null ? (Number(sel.tax_bps) / 100) + "%" : "--";
+  const bt = sel.buy_tax_bps ?? sel.tax_bps, st = sel.sell_tax_bps ?? sel.tax_bps;
+  $("#tTax").textContent = bt != null ? (Number(bt) || Number(st) ? `Buy ${Number(bt) / 100}% · Sell ${Number(st) / 100}%` : "None") : "--";
+  const burnPct = Number(sel.burn_bps || 0) / 100, wallet = sel.fee_recipient || sel.creator;
+  $("#tSplit").textContent = !(Number(bt) || Number(st)) ? "No tax" : burnPct >= 100 ? "100% burned" : burnPct <= 0 ? `100% to ${short(wallet)}` : `${100 - burnPct}% to ${short(wallet)}, ${burnPct}% burned`;
   $("#tCreator").textContent = short(sel.creator || listed.creator);
   const a = $("#tAddr"); a.textContent = short(sel.id); a.href = `${NET.explorer}/address/${sel.id}`;
   $("#tRaised").textContent = fmtU(sel.near_reserve, NEAR_DEC, 2) + " NEAR";
@@ -600,7 +741,7 @@ async function refreshSelected() {
     ? `This token has graduated. It now trades on Ref Finance with locked liquidity. <a id="poolLink" target="_blank" rel="noopener" href="${sel.pool_id != null ? NET.dexPool(sel.pool_id) : "#"}">Open the pool</a>`
     : `The curve is full. Liquidity is moving to Ref Finance: step ${step} of 7 done. Anyone can push the next step.`;
   $("#migrateBtn").classList.toggle("hidden", locked);
-  $("#safety").innerHTML = ["Fixed supply", "No admin keys", `Tax capped at ${(sel.max_tax_bps ?? 1000) / 100}%`, locked ? "LP locked on Ref" : "LP locks at graduation"]
+  $("#safety").innerHTML = ["Fixed supply", "No admin keys", `Tax capped at ${(sel.max_tax_bps ?? 400) / 100}% a side`, locked ? "LP locked on Ref" : "LP locks at graduation"]
     .map(t => `<span class="safe">${t}</span>`).join("");
   drawCurve(pct(sel) / 100);
   balanceUI(); updateTradeButton();
@@ -658,7 +799,8 @@ async function getQuote() {
   $("#quote").textContent = "…";
   let out;
   if (PREVIEW) { // rough preview math from the displayed price
-    const p = B(sel.price) || 1n, net = amt * BigInt(10000 - Number(sel.tax_bps || 0)) / 10000n;
+    const t = Number((mode === "buy" ? sel.buy_tax_bps : sel.sell_tax_bps) ?? sel.tax_bps ?? 0);
+    const p = B(sel.price) || 1n, net = amt * BigInt(10000 - t) / 10000n;
     out = mode === "buy" ? net * 10n ** BigInt(sel.decimals) / p : net * p / 10n ** BigInt(sel.decimals);
   } else {
     out = await tryView(sel.id, mode === "buy" ? "get_buy_quote" : "get_sell_quote", mode === "buy" ? { near_in: amt.toString() } : { tokens_in: amt.toString() }, null);
@@ -761,8 +903,27 @@ function updateTotal() {
   $("#cTotal").textContent = fmtU(creationFee + dev, NEAR_DEC, 3) + " NEAR" + (dev > 0n ? ` (${fmtU(creationFee, NEAR_DEC, 3)} fee + ${fmtU(dev, NEAR_DEC, 3)} buy)` : "");
 }
 $("#cDev").addEventListener("input", updateTotal);
+const fee = { dest: "self", buy: 100, sell: 100, split: 5000 };
+function renderFees() {
+  document.querySelectorAll("#createForm [data-group]").forEach(g => {
+    const key = g.dataset.group;
+    g.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c.dataset.v) === String(fee[key])));
+  });
+  $("#cFeeWallet").classList.toggle("hidden", fee.dest !== "other");
+  const burn = fee.split / 100, who = fee.dest === "other" ? "the fee wallet" : "you";
+  $("#cSplit").innerHTML = !(fee.buy || fee.sell)
+    ? `<span class="muted">No tax on trades.</span>`
+    : `<span><i style="background:var(--arc)"></i>${100 - burn}% to ${who}</span><span><i style="background:var(--gold)"></i>${burn}% burned</span>`;
+}
+document.querySelectorAll("#createForm [data-group]").forEach(g => g.addEventListener("click", (e) => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  const key = g.dataset.group;
+  fee[key] = key === "dest" ? c.dataset.v : Number(c.dataset.v);
+  renderFees();
+  if (key === "dest" && fee.dest === "other") $("#cFeeWallet").focus();
+}));
 async function openCreate() {
-  $("#cTax").max = CONFIG.maxTaxBps / 100;
+  renderFees();
   creationFee = PREVIEW ? Y(3.5) : B(await tryView(CONFIG.factory, "get_creation_fee", {}, "0"));
   $("#cFee").textContent = `The creation fee is ${fmtU(creationFee, NEAR_DEC, 3)} NEAR. Most of it pays for the storage your token contract uses on NEAR.`;
   updateTotal();
@@ -775,9 +936,16 @@ $("#createForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!account) { dlg.close(); return signIn(); }
   const name = $("#cName").value.trim(), symbol = $("#cSymbol").value.trim().toUpperCase();
-  const tax_bps = Math.round(Number($("#cTax").value || 0) * 100);
+  const { buy: buy_tax_bps, sell: sell_tax_bps, split: burn_bps } = fee;
+  let fee_recipient = null;
+  if (fee.dest === "other") {
+    fee_recipient = $("#cFeeWallet").value.trim().toLowerCase();
+    const okId = /^(([a-z\d]+[-_])*[a-z\d]+\.)+([a-z\d]+[-_])*[a-z\d]+$|^[0-9a-f]{64}$/.test(fee_recipient);
+    if (!okId) return toast("Enter the wallet that should get the fees, like friend.testnet", true);
+    if (CONFIG.networkId === "testnet" && !/\.testnet$|^[0-9a-f]{64}$/.test(fee_recipient)) return toast("On testnet the fee wallet must end in .testnet", true);
+  }
   if (!/^[A-Z0-9]{2,10}$/.test(symbol)) return toast("Use 2 to 10 letters or numbers for the ticker.", true);
-  if (tax_bps < 0 || tax_bps > CONFIG.maxTaxBps) return toast(`Tax must be between 0% and ${CONFIG.maxTaxBps / 100}%.`, true);
+  if (buy_tax_bps > CONFIG.maxTaxBps || sell_tax_bps > CONFIG.maxTaxBps) return toast(`Tax can be at most ${CONFIG.maxTaxBps / 100}% a side.`, true);
   const rawWeb = $("#cWeb").value, rawX = $("#cX").value, rawTg = $("#cTg").value;
   const website = normLink(rawWeb), twitter = normLink(rawX, "https://x.com/"), telegram = normLink(rawTg, "https://t.me/");
   if (rawWeb.trim() && !website) return toast("The website link doesn't look right. Use something like https://yoursite.xyz", true);
@@ -788,8 +956,9 @@ $("#createForm").addEventListener("submit", async (e) => {
   if (dev > 0n && dev < MIN_DEV) return toast("Buy at launch must be at least 0.01 NEAR, or leave it empty.", true);
   const btn = $("#cSubmit"); btn.disabled = true;
   try {
-    await callTx("Create " + symbol, CONFIG.factory, [fnCall("create_token", { name, symbol, tax_bps, icon: iconData, description, website, twitter, telegram }, CONFIG.createGas, creationFee + dev)]);
+    await callTx("Create " + symbol, CONFIG.factory, [fnCall("create_token", { name, symbol, buy_tax_bps, sell_tax_bps, fee_recipient, burn_bps, icon: iconData, description, website, twitter, telegram }, CONFIG.createGas, creationFee + dev)]);
     dlg.close(); $("#createForm").reset(); iconData = null; $("#imgBox").classList.remove("has");
+    Object.assign(fee, { dest: "self", buy: 100, sell: 100, split: 5000 }); renderFees();
     await loadTokens();
     const mine = tokens.find(t => t.symbol === symbol && t.creator === account); if (mine) selectToken(mine.token_id);
   } catch (_) {} finally { btn.disabled = false; }
@@ -833,13 +1002,155 @@ $("#linkBtn").addEventListener("click", async () => {
   catch (_) {} finally { b.disabled = false; }
 });
 
+/* ---------------- NEAR mainnet market (read-only) ---------------- */
+let mktKind = "trending_pools", mktSeq = 0;
+const usd = (v) => {
+  const n = Number(v); if (!isFinite(n) || n <= 0) return "--";
+  if (n >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
+  if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+  if (n >= 1e3) return "$" + (n / 1e3).toFixed(1) + "K";
+  if (n >= 1) return "$" + n.toFixed(2);
+  const digits = Math.min(10, Math.max(2, 1 - Math.floor(Math.log10(n)) + 2));
+  return "$" + n.toFixed(digits);
+};
+async function fromGecko(kind) {
+  const r = await fetch(`https://api.geckoterminal.com/api/v2/networks/near/${kind}?include=base_token&page=1`, { headers: { Accept: "application/json" } });
+  if (!r.ok) throw new Error("GeckoTerminal " + r.status);
+  const j = await r.json();
+  const toks = Object.fromEntries((j.included || []).map(t => [t.id, t.attributes]));
+  return (j.data || []).map(p => {
+    const a = p.attributes, t = toks[p.relationships?.base_token?.data?.id] || {};
+    return { symbol: t.symbol || (a.name || "").split(" / ")[0], name: t.name || a.name, icon: t.image_url, priceUsd: a.base_token_price_usd,
+      change: a.price_change_percentage?.h24, volume: a.volume_usd?.h24, liquidity: a.reserve_in_usd, url: `https://www.geckoterminal.com/near/pools/${encodeURIComponent(a.address)}` };
+  });
+}
+async function fromDexScreener() {
+  const r = await fetch("https://api.dexscreener.com/latest/dex/search?q=wrap.near");
+  if (!r.ok) throw new Error("DexScreener " + r.status);
+  const j = await r.json();
+  return (j.pairs || []).filter(p => p.chainId === "near").sort((a, b) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0)).map(p => ({
+    symbol: p.baseToken?.symbol, name: p.baseToken?.name, icon: p.info?.imageUrl, priceUsd: p.priceUsd,
+    change: p.priceChange?.h24, volume: p.volume?.h24, liquidity: p.liquidity?.usd, url: p.url }));
+}
+async function loadMarket() {
+  const seq = ++mktSeq, body = $("#mktBody");
+  let rows = null, src = "";
+  try { rows = await fromGecko(mktKind); src = "Data: GeckoTerminal (NEAR mainnet). Refreshes every minute."; }
+  catch (e1) {
+    try { rows = await fromDexScreener(); src = "Data: DexScreener (NEAR mainnet). GeckoTerminal was unavailable, so this shows top volume."; }
+    catch (e2) { rows = null; }
+  }
+  if (seq !== mktSeq) return;
+  if (!rows) { body.innerHTML = `<tr><td colspan="6" class="muted">Couldn't load the NEAR market right now. It retries every minute.</td></tr>`; $("#mktSrc").textContent = ""; return; }
+  rows = rows.filter(r => r.symbol).slice(0, 20);
+  body.innerHTML = rows.length ? rows.map((r, i) => {
+    const ch = Number(r.change), img = safeImg(r.icon);
+    const link = safeUrl(r.url) || "#";
+    return `<tr class="mkt-row" data-url="${esc(link)}">
+      <td class="muted">${i + 1}</td>
+      <td><span class="mkt-tok">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="ph"></span>`}<span><b>${esc(r.symbol)}</b><span class="small muted">${esc(r.name || "")}</span></span></span></td>
+      <td class="num">${usd(r.priceUsd)}</td>
+      <td class="num ${isFinite(ch) ? (ch >= 0 ? "up" : "down") : ""}">${isFinite(ch) ? (ch >= 0 ? "+" : "") + ch.toFixed(1) + "%" : "--"}</td>
+      <td class="num mkt-hide">${usd(r.volume)}</td>
+      <td class="num mkt-hide">${usd(r.liquidity)}</td></tr>`;
+  }).join("") : `<tr><td colspan="6" class="muted">No tokens to show yet.</td></tr>`;
+  $("#mktSrc").textContent = src;
+}
+$("#mktBody").addEventListener("click", (e) => { const tr = e.target.closest(".mkt-row"); if (tr && tr.dataset.url !== "#") window.open(tr.dataset.url, "_blank", "noopener"); });
+$("#mktTabs").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  mktKind = b.dataset.k;
+  $("#mktTabs").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("#mktBody").innerHTML = `<tr><td colspan="6" class="muted">Loading…</td></tr>`;
+  loadMarket();
+});
+
+/* ---------------- views ---------------- */
+let curView = "board";
+function setView(v) {
+  curView = v;
+  document.body.dataset.view = v;
+  document.querySelectorAll("[data-views]").forEach(el => el.classList.toggle("offview", !el.dataset.views.split(" ").includes(v)));
+  document.querySelectorAll(".topnav [data-view], .bnav [data-view]").forEach(b => { if (b.dataset.view === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  params.set("view", v); history.replaceState(null, "", "?" + params);
+  window.scrollTo({ top: 0 });
+  if (v === "feed") loadFeed();
+  if (v === "market") loadMarket();
+  if (v === "board" && sel) drawCurve(pct(sel) / 100);
+}
+document.querySelectorAll(".topnav, .bnav").forEach(n => n.addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.action === "launch") return openCreate();
+  setView(b.dataset.view);
+}));
+
+/* ---------------- feed (all SafeNear trades) ---------------- */
+let feedFilter = "all", feedRows = [], feedSeq = 0;
+const BIG_BUY = 10n ** 24n; // 1 NEAR
+async function loadFeed() {
+  const seq = ++feedSeq;
+  let rows = [];
+  if (PREVIEW) {
+    rows = DEMO.flatMap((t, ti) => demoTrades().map((r, i) => ({ ...r, timestamp_ms: r.timestamp_ms - ti * 97000 - i * 13000, token: t })));
+  } else {
+    const per = await Promise.all(tokens.map(t => tryView(t.token_id, "get_recent_trades", { limit: 15 }, []).then(list => (list || []).map(r => ({ ...r, token: t })))));
+    rows = per.flat();
+  }
+  if (seq !== feedSeq) return;
+  feedRows = rows.sort((a, b) => Number(b.timestamp_ms) - Number(a.timestamp_ms)).slice(0, 80);
+  renderFeed();
+}
+function renderFeed() {
+  const min = parseU($("#feedMin").value, NEAR_DEC);
+  const list = feedRows.filter(r => {
+    const n = B(r.near_amount);
+    if (n < min) return false;
+    if (feedFilter === "big") return r.side === "buy" && n >= (min > BIG_BUY ? min : BIG_BUY);
+    if (feedFilter === "mine") return account && r.account_id === account;
+    return true;
+  });
+  if (!list.length) {
+    $("#feedList").innerHTML = `<p class="muted">${feedFilter === "mine" ? (account ? "You haven't traded yet. Your buys and sells show up here." : "Connect your wallet to see your own trades.") : !feedRows.length ? "No trades yet. Launch a token or make the first buy." : "No trades match this filter."}</p>`;
+    return;
+  }
+  $("#feedList").innerHTML = list.map(r => {
+    const t = r.token || {}, dec = 18;
+    const nearAmt = B(r.near_amount), tokAmt = B(r.token_amount);
+    // market cap at the trade's own price: price per token x 1B supply
+    const mcap = tokAmt > 0n ? nearAmt * 10n ** BigInt(dec) * 1_000_000_000n / tokAmt : 0n;
+    const buy = r.side === "buy";
+    return `<div class="fitem">
+      <span class="ticon">${iconHtml(t, t.symbol)}</span>
+      <div class="fline"><span class="who">${esc(short(r.account_id))}</span> <span class="${buy ? "b" : "s"}">${buy ? "bought" : "sold"}</span>
+        <span class="amt">${fmtU(nearAmt, NEAR_DEC, 2)} NEAR</span> of <b>$${esc(t.symbol || "?")}</b>
+        <div class="fmeta">at ${fmtU(mcap, NEAR_DEC, 0)} NEAR mcap</div></div>
+      <div class="fside"><span class="when">${ago(Number(r.timestamp_ms))}</span><button class="tradebtn" data-id="${esc(t.token_id || "")}">TRADE</button></div>
+    </div>`;
+  }).join("");
+}
+$("#feedSeg").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  feedFilter = b.dataset.f;
+  $("#feedSeg").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  renderFeed();
+});
+let fT; $("#feedMin").addEventListener("input", () => { clearTimeout(fT); fT = setTimeout(renderFeed, 200); });
+$("#feedList").addEventListener("click", (e) => {
+  const b = e.target.closest(".tradebtn"); if (!b || !b.dataset.id) return;
+  setView("board"); selectToken(b.dataset.id);
+});
+
 /* ---------------- boot ---------------- */
 if (CONFIG.networkId === "mainnet") { $("#netChip").classList.add("hidden"); $("#tnBanner").classList.add("hidden"); $("#pointsBox").classList.add("hidden"); }
 walletUI();
 loadTokens();
 loadPoints();
+loadMarket();
 initWallet();
 setInterval(() => { if (!document.hidden && !PREVIEW) refreshSelected(); }, 10000);
+setInterval(() => { if (!document.hidden && curView === "market") loadMarket(); }, 60000);
+setInterval(() => { if (!document.hidden && curView === "feed") loadFeed(); }, 15000);
+setView(["board", "feed", "market"].includes(params.get("view")) ? params.get("view") : "board");
 setInterval(() => { if (!document.hidden && !PREVIEW) { loadTape(); loadPoints(); } }, 20000);
 </script>
 </body>
