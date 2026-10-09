@@ -284,7 +284,7 @@ const NETWORKS = {
 };
 const CONFIG = {
   networkId: params.get("network") === "mainnet" ? "mainnet" : "testnet",
-  factory: params.get("factory") || "",   // e.g. "safenear.testnet"
+  factory: params.get("factory") || "testnettestes.testnet",   // e.g. "safenear.testnet"
   maxTaxBps: 1000,                          // 10% cap, match the contract
   listLimit: 40,
   tradeGas: "100000000000000",              // 100 Tgas
