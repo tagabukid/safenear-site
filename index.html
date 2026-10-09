@@ -319,44 +319,103 @@ async function nearBalance(id) {
   try { const r = await rpc("query", { request_type: "view_account", finality: "optimistic", account_id: id }); return B(r.amount); } catch { return 0n; }
 }
 
-/* ---------------- wallet (NEAR Wallet Selector) ---------------- */
-async function initWallet() {
-  try {
-    const V = "8.9.13";
-    const [{ setupWalletSelector }, { setupModal }, { setupMyNearWallet }, { setupMeteorWallet }, { setupHereWallet }] = await Promise.all([
-      import(`https://esm.sh/@near-wallet-selector/core@${V}`),
-      import(`https://esm.sh/@near-wallet-selector/modal-ui@${V}`),
-      import(`https://esm.sh/@near-wallet-selector/my-near-wallet@${V}`),
-      import(`https://esm.sh/@near-wallet-selector/meteor-wallet@${V}`),
-      import(`https://esm.sh/@near-wallet-selector/here-wallet@${V}`),
-    ]);
-    selector = await setupWalletSelector({ network: CONFIG.networkId, modules: [setupMeteorWallet(), setupHereWallet(), setupMyNearWallet()] });
-    modal = setupModal(selector, { contractId: CONFIG.factory || "" });
-    const sync = (state) => { account = state.accounts.find(a => a.active)?.accountId || null; walletUI(); refreshSelected(); loadPoints(); };
-    sync(selector.store.getState());
-    selector.store.observable.subscribe(sync);
-  } catch (e) {
-    console.error(e);
-    toast("Couldn't load the wallet selector. Reading data still works; reload to try connecting again.", true);
-  }
+/* ---------------- wallet ----------------
+   Path 1: NEAR Wallet Selector (Meteor, HOT, MyNearWallet) from esm.sh, with a time limit.
+   Path 2 (fallback): MyNearWallet through near-api-js's browser bundle, which loads as a plain script.
+------------------------------------------------------------------------ */
+const SIGNIN_CONTRACT = CONFIG.factory || (CONFIG.networkId === "mainnet" ? "wrap.near" : "wrap.testnet");
+const MNW_URL = CONFIG.networkId === "mainnet" ? "https://app.mynearwallet.com" : "https://testnet.mynearwallet.com";
+let walletKind = null;      // "selector" | "mnw"
+let mnw = null, BNctor = null;
+
+const withTimeout = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + " timed out")), ms))]);
+function loadScript(src) {
+  return new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = () => rej(new Error("Couldn't load " + src)); document.head.appendChild(el); });
 }
+
+async function initSelector() {
+  const V = "8.9.13";
+  const [{ setupWalletSelector }, { setupModal }, { setupMyNearWallet }, { setupMeteorWallet }, { setupHereWallet }] = await withTimeout(Promise.all([
+    import(`https://esm.sh/@near-wallet-selector/core@${V}`),
+    import(`https://esm.sh/@near-wallet-selector/modal-ui@${V}`),
+    import(`https://esm.sh/@near-wallet-selector/my-near-wallet@${V}`),
+    import(`https://esm.sh/@near-wallet-selector/meteor-wallet@${V}`),
+    import(`https://esm.sh/@near-wallet-selector/here-wallet@${V}`),
+  ]), 15000, "Wallet selector");
+  selector = await setupWalletSelector({ network: CONFIG.networkId, modules: [setupMeteorWallet(), setupHereWallet(), setupMyNearWallet()] });
+  modal = setupModal(selector, { contractId: SIGNIN_CONTRACT });
+  const sync = (state) => { account = state.accounts.find(a => a.active)?.accountId || null; walletUI(); refreshSelected(); loadPoints(); };
+  sync(selector.store.getState());
+  selector.store.observable.subscribe(sync);
+  walletKind = "selector";
+}
+
+async function initMyNearWallet() {
+  const bundles = ["near-api-js@2.1.4", "near-api-js@1.1.0", "near-api-js@0.44.2"];
+  let lastErr;
+  for (const b of bundles) {
+    try { await loadScript(`https://cdn.jsdelivr.net/npm/${b}/dist/near-api-js.min.js`); if (window.nearApi) break; } catch (e) { lastErr = e; }
+  }
+  if (!window.nearApi) throw lastErr || new Error("near-api-js didn't load");
+  const N = window.nearApi;
+  BNctor = N.DEFAULT_FUNCTION_CALL_GAS?.constructor;
+  if (!BNctor || BNctor === Number || BNctor === String) {
+    await loadScript("https://cdn.jsdelivr.net/npm/bn.js@5.2.1/lib/bn.js");
+    BNctor = window.BN;
+  }
+  const near = await N.connect({ networkId: CONFIG.networkId, nodeUrl: NET.rpcs[0], walletUrl: MNW_URL, headers: {}, keyStore: new N.keyStores.BrowserLocalStorageKeyStore() });
+  mnw = new N.WalletConnection(near, "safenear");
+  account = mnw.getAccountId() || null;
+  walletKind = "mnw";
+  walletUI(); refreshSelected(); loadPoints();
+}
+
+async function initWallet() {
+  $("#connectBtn").textContent = "Loading wallet…";
+  try { await initSelector(); }
+  catch (e1) {
+    console.warn("Wallet Selector unavailable, using MyNearWallet directly:", e1);
+    try { await initMyNearWallet(); }
+    catch (e2) { console.error(e2); walletUI(); toast("Couldn't load a wallet: " + esc(e2.message || e2), true, 10000); return; }
+  }
+  walletUI();
+}
+
+function signIn() {
+  if (walletKind === "selector") return modal.show();
+  if (walletKind === "mnw") return mnw.requestSignIn({ contractId: SIGNIN_CONTRACT, methodNames: [], successUrl: location.href, failureUrl: location.href });
+  toast("The wallet is still loading. Try again in a few seconds.", true);
+}
+async function signOut() {
+  if (walletKind === "selector") { const w = await selector.wallet(); await w.signOut(); }
+  else if (walletKind === "mnw") { mnw.signOut(); account = null; walletUI(); loadPoints(); }
+}
+
 function walletUI() {
   $("#netDot").className = "dot " + (account ? "on" : "");
   $("#netLabel").textContent = "NEAR " + CONFIG.networkId;
-  $("#connectBtn").textContent = account ? short(account) : "Connect wallet";
+  $("#connectBtn").textContent = account ? short(account) : walletKind ? "Connect wallet" : "Loading wallet…";
   updateTradeButton();
 }
 $("#connectBtn").addEventListener("click", async () => {
-  if (!selector) return toast("Wallet selector is still loading.", true);
-  if (!account) return modal.show();
-  if (confirm(`Sign out ${account}?`)) { const w = await selector.wallet(); await w.signOut(); }
+  if (!account) return signIn();
+  if (confirm(`Sign out ${account}?`)) await signOut();
 });
+
 async function callTx(label, receiverId, actions) {
   if (PREVIEW) { toast("Preview mode: transactions are turned off until CONFIG.factory is set.", true); throw new Error("preview"); }
-  const wallet = await selector.wallet();
   try {
     toast(`${label}: approve it in your wallet…`, false, 0);
-    const out = await wallet.signAndSendTransaction({ receiverId, actions });
+    let out;
+    if (walletKind === "selector") {
+      const wallet = await selector.wallet();
+      out = await wallet.signAndSendTransaction({ receiverId, actions });
+    } else if (walletKind === "mnw") {
+      const N = window.nearApi;
+      const acts = actions.map(a => N.transactions.functionCall(a.params.methodName, a.params.args, new BNctor(a.params.gas), new BNctor(a.params.deposit)));
+      // Calls with a deposit redirect to MyNearWallet and come back with ?transactionHashes=
+      out = await mnw.account().signAndSendTransaction({ receiverId, actions: acts });
+    } else throw new Error("Connect a wallet first.");
     const hash = out?.transaction?.hash || out?.transaction_outcome?.id;
     const failure = out?.status?.Failure;
     if (failure) throw new Error(JSON.stringify(failure).slice(0, 200));
@@ -550,7 +609,7 @@ function updateTradeButton() {
   b.textContent = (mode === "buy" ? "Buy " : "Sell ") + sel.symbol; b.disabled = false;
 }
 $("#tradeBtn").addEventListener("click", async () => {
-  if (!account) return modal ? modal.show() : toast("Wallet selector is still loading.", true);
+  if (!account) return signIn();
   const b = $("#tradeBtn"); b.disabled = true;
   try {
     const dec = mode === "buy" ? NEAR_DEC : sel.decimals, amt = parseU($("#amount").value, dec);
@@ -573,7 +632,7 @@ $("#tradeBtn").addEventListener("click", async () => {
 });
 
 $("#migrateBtn").addEventListener("click", async () => {
-  if (!account) return modal ? modal.show() : toast("Wallet selector is still loading.", true);
+  if (!account) return signIn();
   const b = $("#migrateBtn"); b.disabled = true;
   try { await callTx("Graduation step", sel.id, [fnCall("migrate", {}, "300000000000000", 0)]); await refreshSelected(); }
   catch (_) {} finally { b.disabled = false; }
@@ -605,7 +664,7 @@ $("#emptyCreate").addEventListener("click", openCreate);
 $("#cCancel").addEventListener("click", () => dlg.close());
 $("#createForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (!account) { dlg.close(); return modal ? modal.show() : null; }
+  if (!account) { dlg.close(); return signIn(); }
   const name = $("#cName").value.trim(), symbol = $("#cSymbol").value.trim().toUpperCase();
   const tax_bps = Math.round(Number($("#cTax").value || 0) * 100);
   if (!/^[A-Z0-9]{2,10}$/.test(symbol)) return toast("Use 2 to 10 letters or numbers for the ticker.", true);
@@ -649,7 +708,7 @@ async function loadPoints() {
     : `<tr><td colspan="3" class="muted">No points yet. Launch or buy a token to get on the board.</td></tr>`;
 }
 $("#linkBtn").addEventListener("click", async () => {
-  if (!account) return modal ? modal.show() : toast("Wallet selector is still loading.", true);
+  if (!account) return signIn();
   const v = $("#mainnetInput").value.trim().toLowerCase();
   if (!/^([a-z0-9_-]+\.)*[a-z0-9_-]+\.near$|^[0-9a-f]{64}$/.test(v)) return toast("Enter a mainnet account like yourname.near (or a 64-character address).", true);
   const b = $("#linkBtn"); b.disabled = true;
