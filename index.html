@@ -79,6 +79,28 @@ h2{font-size:18px;font-weight:600;margin-bottom:12px}
 .link-row{display:flex;gap:8px;margin-top:8px}
 .link-row input{flex:1;min-width:0;background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
 tr.me td{background:var(--arc-soft)}
+.thead{display:flex;gap:16px;align-items:center}
+.ticon{width:76px;height:76px;border-radius:50%;flex:none;background:var(--arc-soft);color:var(--arc);display:grid;place-items:center;font:800 26px var(--display);overflow:hidden;box-shadow:0 0 0 2px var(--line),0 0 28px rgba(47,227,188,.18)}
+.ticon img{width:100%;height:100%;object-fit:cover}
+.tdesc{margin-top:14px;max-width:60ch}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.lnk{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;text-decoration:none;color:var(--ink)}
+.lnk:hover{border-color:var(--arc);color:var(--arc)}
+.dlg{max-height:88vh;overflow:auto}
+.dlg textarea{background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical;min-height:64px;font:inherit;color:inherit}
+.dlg .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.dlg .two > label{min-width:0}
+.dlg input,.dlg textarea{width:100%;min-width:0}
+@media (max-width:480px){.dlg .two{grid-template-columns:1fr}}
+.imgpick{display:flex;gap:14px;align-items:center}
+.dlg label.imgbox{width:76px;height:76px;border-radius:50%;border:1.5px dashed var(--line);display:grid;place-items:center;overflow:hidden;cursor:pointer;flex:none;background:var(--bg);font-size:12px;font-weight:600;color:var(--muted);text-align:center;gap:0}
+.dlg label.imgbox:hover{border-color:var(--arc)}
+.imgbox img{width:100%;height:100%;object-fit:cover;display:none}
+.imgbox.has img{display:block} .imgbox.has span{display:none}
+.sr{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.fieldset-title{font:600 14px var(--body);margin-top:4px}
+.devnote{font-size:12px;color:var(--muted);font-weight:400}
+.total{display:flex;justify-content:space-between;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
 .grad{padding:14px;border-radius:10px;background:#2A2410;border:1px solid var(--gold);font-size:14px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{text-align:left;font-weight:600;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line)}
@@ -88,7 +110,7 @@ td.buy{color:var(--good);font-weight:600} td.sell{color:var(--bad);font-weight:6
 .empty{text-align:center;padding:48px 20px}
 .empty h1{font-size:clamp(28px,4vw,44px);margin-bottom:10px}
 .empty p{max-width:52ch;margin:0 auto 18px;color:var(--muted)}
-dialog{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:0;max-width:440px;width:calc(100% - 32px);color:var(--ink)}
+dialog{margin:auto;border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:0;max-width:440px;width:calc(100% - 32px);color:var(--ink)}
 dialog::backdrop{background:rgba(2,10,12,.7)}
 .dlg{padding:24px;display:flex;flex-direction:column;gap:14px}
 .dlg label{font-weight:600;font-size:14px;display:flex;flex-direction:column;gap:6px}
@@ -132,12 +154,17 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
 
     <div class="hero hidden" id="tokenView">
       <section class="panel">
-        <div class="ticker" id="tTicker">--</div>
-        <div class="tname" id="tName"></div>
+        <div class="thead">
+          <span class="ticon" id="tIcon"></span>
+          <div><div class="ticker" id="tTicker">--</div><div class="tname" id="tName"></div></div>
+        </div>
+        <p class="tdesc hidden" id="tDesc"></p>
+        <div class="links hidden" id="tLinks"></div>
         <div class="facts">
           <div><span>Price</span><strong id="tPrice">--</strong></div>
           <div><span>Tax</span><strong id="tTax">--</strong></div>
           <div><span>Creator</span><strong id="tCreator">--</strong></div>
+          <div><span>Dev bought</span><strong id="tDev">--</strong></div>
           <div><span>Contract</span><strong><a id="tAddr" target="_blank" rel="noopener">--</a></strong></div>
         </div>
         <div class="chips" id="safety" style="margin-bottom:6px"></div>
@@ -205,9 +232,28 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
   <form class="dlg" id="createForm">
     <h2 style="margin:0">Create a token</h2>
     <p class="muted small" style="margin-top:-8px">Your token gets its own NEAR account and starts trading on its bonding curve right away.</p>
-    <label>Name<input id="cName" maxlength="32" required placeholder="Safe Penguin"></label>
-    <label>Ticker<input id="cSymbol" maxlength="10" required placeholder="DASH" style="text-transform:uppercase"></label>
-    <label>Trade tax (%)<input id="cTax" type="number" min="0" step="0.1" value="1"></label>
+    <div class="imgpick">
+      <label class="imgbox" id="imgBox" for="cImage"><img id="cImgPrev" alt="Token image preview"><span>Add image</span></label>
+      <input id="cImage" class="sr" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+      <div class="small muted" id="cImgInfo">Square works best. It's resized to 96 × 96 and saved on-chain with your token.</div>
+    </div>
+    <div class="two">
+      <label>Name<input id="cName" maxlength="32" required placeholder="Safe Penguin"></label>
+      <label>Ticker<input id="cSymbol" maxlength="10" required placeholder="PENGU" style="text-transform:uppercase"></label>
+    </div>
+    <label>Description<textarea id="cDesc" maxlength="280" placeholder="What's your token about? (up to 280 characters)"></textarea></label>
+    <div class="fieldset-title">Links <span class="devnote">(optional)</span></div>
+    <label>Website<input id="cWeb" inputmode="url" placeholder="https://safepenguin.xyz"></label>
+    <div class="two">
+      <label>X (Twitter)<input id="cX" placeholder="@safepenguin"></label>
+      <label>Telegram<input id="cTg" placeholder="@safepenguin"></label>
+    </div>
+    <div class="two">
+      <label>Trade tax (%)<input id="cTax" type="number" min="0" step="0.1" value="1"></label>
+      <label>Buy at launch (NEAR)<input id="cDev" inputmode="decimal" placeholder="0"></label>
+    </div>
+    <p class="devnote">Buy at launch is your own first buy, made in the same transaction. No tax, capped at 5% of supply, and any unused NEAR comes back to you. Everyone can see how much you bought.</p>
+    <div class="total"><span class="muted">You pay</span><strong id="cTotal">--</strong></div>
     <p class="muted small" id="cFee"></p>
     <div class="actions">
       <button class="btn ghost" type="button" id="cCancel">Cancel</button>
@@ -254,7 +300,9 @@ const PREVIEW = !CONFIG.factory;
      view  get_tokens_count() -> u64
      view  get_tokens({from_index, limit}) -> [{ token_id, name, symbol, creator }]
      view  get_creation_fee() -> U128   (yoctoNEAR, includes storage for the token contract)
-     call  create_token({ name, symbol, tax_bps }) + deposit = creation fee
+     call  create_token({ name, symbol, tax_bps, icon, description, website, twitter, telegram })
+           + deposit = creation fee + optional buy at launch
+     view  (token) get_info() -> { icon, description, website, twitter, telegram, dev_buy_tokens }
    Token (NEP-141 + bonding curve), one sub-account per token:
      view  ft_metadata(), ft_balance_of({account_id}), storage_balance_of({account_id}), storage_balance_bounds()
      view  get_curve() -> { near_reserve, graduation_threshold, graduated, tax_bps, creator, price, pool_id }
@@ -288,6 +336,10 @@ function parseU(str, dec) {
   const [i, f = ""] = s.split(".");
   return B(i || "0") * 10n ** BigInt(dec) + B(f.slice(0, dec).padEnd(dec, "0") || "0");
 }
+const safeImg = (u) => typeof u === "string" && (/^data:image\/(png|jpeg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(u) || /^https:\/\/[^\s"'<>]+$/.test(u)) ? u : null;
+const safeUrl = (u) => { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch { return null; } };
+const iconHtml = (t, fallback) => { const src = safeImg(t?.icon); return src ? `<img src="${esc(src)}" alt="">` : esc((fallback || "?").slice(0, 2)); };
+const TOTAL_SUPPLY = 10n ** 27n;
 const toUnitsStr = (v, dec) => { const s = fmtU(v, dec, dec).replace(/,/g, ""); return s.startsWith("<") ? "0" : s; };
 function toast(html, isErr = false, ms = 6000) {
   const t = $("#toast"); t.innerHTML = html; t.className = "show" + (isErr ? " err" : "");
@@ -442,6 +494,12 @@ if (params.get("errorCode")) {
 
 /* ---------------- preview data ---------------- */
 const Y = (n) => B(Math.round(n * 1e6)) * 10n ** 18n; // NEAR -> yocto
+const demoIcon = (bg, fg, letter) => "data:image/svg+xml;base64," + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" fill="${bg}"/><circle cx="48" cy="48" r="30" fill="${fg}"/><text x="48" y="60" font-size="34" font-family="sans-serif" font-weight="700" text-anchor="middle" fill="${bg}">${letter}</text></svg>`);
+const DEMO_INFO = {
+  "dash.safenear.testnet": { icon: demoIcon("#0F3A37", "#2FE3BC", "D"), description: "A tiny runner that never stops. Built for the SafeNear testnet.", website: "https://example.com", twitter: "https://x.com/example", telegram: "https://t.me/example", dev_buy_tokens: String(32n * 10n ** 24n) },
+  "pengu.safenear.testnet": { icon: demoIcon("#1D2A4A", "#9CC4F0", "P"), description: "Waddling to Ref Finance.", dev_buy_tokens: "0" },
+  "bull.safenear.testnet": { icon: null, description: "", dev_buy_tokens: String(10n * 10n ** 24n) },
+};
 const DEMO = [
   { token_id: "dash.safenear.testnet", name: "Dash Runner", symbol: "DASH", creator: "tagabukid.testnet", curve: { near_reserve: Y(612), graduation_threshold: Y(1000), graduated: false, tax_bps: 100, price: Y(0.0000041) } },
   { token_id: "pengu.safenear.testnet", name: "Safe Penguin", symbol: "PENGU", creator: "tagabukid.testnet", curve: { near_reserve: Y(1000), graduation_threshold: Y(1000), graduated: true, tax_bps: 200, price: Y(0.0000088), pool_id: 0 } },
@@ -454,13 +512,16 @@ async function loadTokens() {
   const list = $("#list");
   if (PREVIEW) {
     $("#previewBanner").classList.remove("hidden");
-    tokens = DEMO.map(d => ({ ...d, ...d.curve }));
+    tokens = DEMO.map(d => ({ ...d, ...d.curve, icon: DEMO_INFO[d.token_id]?.icon }));
   } else {
     try {
       const count = Number(await view(CONFIG.factory, "get_tokens_count"));
       const from = Math.max(0, count - CONFIG.listLimit);
       const rows = await view(CONFIG.factory, "get_tokens", { from_index: from, limit: CONFIG.listLimit });
-      tokens = (await Promise.all(rows.reverse().map(async t => ({ ...t, ...(await tryView(t.token_id, "get_curve", {}, {})) }))));
+      tokens = (await Promise.all(rows.reverse().map(async t => {
+        const [curve, meta] = await Promise.all([tryView(t.token_id, "get_curve", {}, {}), tryView(t.token_id, "ft_metadata", {}, {})]);
+        return { ...t, ...curve, icon: meta?.icon || null };
+      })));
     } catch (e) {
       list.innerHTML = `<p class="muted small">Couldn't read the factory <b>${esc(CONFIG.factory)}</b> on ${CONFIG.networkId}. Check the account name and that the contract is deployed.</p>`;
       return showEmpty();
@@ -479,7 +540,7 @@ function renderList() {
   $("#list").innerHTML = rows.map(t => {
     const p = pct(t);
     return `<button class="item" data-id="${esc(t.token_id)}" aria-current="${sel?.id === t.token_id}">
-      <span class="mono-ic">${esc((t.symbol || "?").slice(0, 2))}</span>
+      <span class="mono-ic">${iconHtml(t, t.symbol)}</span>
       <span><b>${esc(t.symbol)}</b><br><span class="small muted">${esc(t.name)}</span></span>
       <span class="small muted">${t.graduated ? "Graduated" : p.toFixed(1) + "%"}</span>
       <span class="bar"><i class="${t.graduated ? "done" : ""}" style="width:${p}%"></i></span></button>`;
@@ -503,18 +564,28 @@ async function selectToken(id) {
 async function refreshSelected() {
   if (!sel) return;
   const listed = tokens.find(t => t.token_id === sel.id) || {};
-  let meta, curve;
-  if (PREVIEW) { meta = { name: listed.name, symbol: listed.symbol, decimals: 18, icon: null }; curve = { ...listed.curve, creator: listed.creator }; }
+  let meta, curve, info;
+  if (PREVIEW) { info = DEMO_INFO[sel.id] || {}; meta = { name: listed.name, symbol: listed.symbol, decimals: 18, icon: info.icon }; curve = { ...listed.curve, creator: listed.creator }; }
   else {
-    [meta, curve] = await Promise.all([tryView(sel.id, "ft_metadata", {}, {}), tryView(sel.id, "get_curve", {}, {})]);
+    [meta, curve, info] = await Promise.all([tryView(sel.id, "ft_metadata", {}, {}), tryView(sel.id, "get_curve", {}, {}), tryView(sel.id, "get_info", {}, {})]);
     Object.assign(listed, curve); renderList();
   }
-  Object.assign(sel, { name: meta.name || listed.name, symbol: meta.symbol || listed.symbol || "???", decimals: meta.decimals ?? 18, icon: meta.icon, ...curve });
+  info = info || {};
+  Object.assign(sel, { name: meta.name || listed.name, symbol: meta.symbol || listed.symbol || "???", decimals: meta.decimals ?? 18, icon: meta.icon || info.icon, info, ...curve });
   if (account) {
     const [nb, tb] = PREVIEW ? [Y(42.5), Y(125000)] : await Promise.all([nearBalance(account), tryView(sel.id, "ft_balance_of", { account_id: account }, "0")]);
     sel.nearBal = B(nb); sel.tokenBal = B(tb);
   }
   $("#tTicker").textContent = "$" + sel.symbol; $("#tName").textContent = sel.name;
+  $("#tIcon").innerHTML = iconHtml(sel, sel.symbol);
+  const desc = (info.description || "").trim();
+  $("#tDesc").textContent = desc; $("#tDesc").classList.toggle("hidden", !desc);
+  const links = [["Website", info.website], ["X", info.twitter], ["Telegram", info.telegram]]
+    .map(([label, u]) => [label, safeUrl(u)]).filter(([, u]) => u);
+  $("#tLinks").innerHTML = links.map(([label, u]) => `<a class="lnk" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a>`).join("");
+  $("#tLinks").classList.toggle("hidden", !links.length);
+  const devT = B(info.dev_buy_tokens);
+  $("#tDev").textContent = devT > 0n ? (Number(devT * 10000n / TOTAL_SUPPLY) / 100).toFixed(2) + "% of supply" : "Nothing";
   $("#tPrice").textContent = sel.price != null ? fmtU(sel.price, NEAR_DEC, 8) + " NEAR" : "--";
   $("#tTax").textContent = sel.tax_bps != null ? (Number(sel.tax_bps) / 100) + "%" : "--";
   $("#tCreator").textContent = short(sel.creator || listed.creator);
@@ -653,10 +724,48 @@ async function loadTape() {
 
 /* ---------------- create token ---------------- */
 const dlg = $("#createDlg");
+let iconData = null;
+const MIN_DEV = 10n ** 22n; // 0.01 NEAR
+async function toIcon(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("That file isn't an image we can read. Try a PNG or JPG.")); i.src = url; });
+    const S = 96, c = document.createElement("canvas"); c.width = c.height = S;
+    const g = c.getContext("2d"), m = Math.min(img.width, img.height);
+    g.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+    for (const qual of [0.85, 0.7, 0.55, 0.4]) {
+      let d = c.toDataURL("image/webp", qual);
+      if (!d.startsWith("data:image/webp")) d = c.toDataURL("image/jpeg", qual);
+      if (d.length <= 12000) return d;
+    }
+    throw new Error("That image has too much detail to fit on-chain. Try a simpler one.");
+  } finally { URL.revokeObjectURL(url); }
+}
+$("#cImage").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (f.size > 10 * 1024 * 1024) { e.target.value = ""; return toast("Pick an image under 10 MB.", true); }
+  try {
+    iconData = await toIcon(f);
+    $("#cImgPrev").src = iconData; $("#imgBox").classList.add("has");
+    $("#cImgInfo").textContent = `Image ready (${(iconData.length / 1024).toFixed(1)} KB on-chain). Click it to change.`;
+  } catch (err) { iconData = null; $("#imgBox").classList.remove("has"); toast(esc(err.message), true); }
+});
+const normLink = (v, base) => {
+  v = v.trim(); if (!v) return null;
+  if (base && /^@?[A-Za-z0-9_]{2,64}$/.test(v)) return base + v.replace(/^@/, "");
+  if (!/^[a-z]+:\/\//i.test(v)) v = "https://" + v;
+  return safeUrl(v);
+};
+function updateTotal() {
+  const dev = parseU($("#cDev").value, NEAR_DEC);
+  $("#cTotal").textContent = fmtU(creationFee + dev, NEAR_DEC, 3) + " NEAR" + (dev > 0n ? ` (${fmtU(creationFee, NEAR_DEC, 3)} fee + ${fmtU(dev, NEAR_DEC, 3)} buy)` : "");
+}
+$("#cDev").addEventListener("input", updateTotal);
 async function openCreate() {
   $("#cTax").max = CONFIG.maxTaxBps / 100;
   creationFee = PREVIEW ? Y(3.5) : B(await tryView(CONFIG.factory, "get_creation_fee", {}, "0"));
-  $("#cFee").textContent = `Creation fee: ${fmtU(creationFee, NEAR_DEC, 3)} NEAR. Most of this pays for the storage your token contract uses on NEAR.`;
+  $("#cFee").textContent = `The creation fee is ${fmtU(creationFee, NEAR_DEC, 3)} NEAR. Most of it pays for the storage your token contract uses on NEAR.`;
+  updateTotal();
   dlg.showModal();
 }
 $("#createBtn").addEventListener("click", openCreate);
@@ -669,10 +778,18 @@ $("#createForm").addEventListener("submit", async (e) => {
   const tax_bps = Math.round(Number($("#cTax").value || 0) * 100);
   if (!/^[A-Z0-9]{2,10}$/.test(symbol)) return toast("Use 2 to 10 letters or numbers for the ticker.", true);
   if (tax_bps < 0 || tax_bps > CONFIG.maxTaxBps) return toast(`Tax must be between 0% and ${CONFIG.maxTaxBps / 100}%.`, true);
+  const rawWeb = $("#cWeb").value, rawX = $("#cX").value, rawTg = $("#cTg").value;
+  const website = normLink(rawWeb), twitter = normLink(rawX, "https://x.com/"), telegram = normLink(rawTg, "https://t.me/");
+  if (rawWeb.trim() && !website) return toast("The website link doesn't look right. Use something like https://yoursite.xyz", true);
+  if (rawX.trim() && !twitter) return toast("Enter your X handle (like @safepenguin) or the full https://x.com link.", true);
+  if (rawTg.trim() && !telegram) return toast("Enter your Telegram handle (like @safepenguin) or the full https://t.me link.", true);
+  const description = $("#cDesc").value.trim() || null;
+  const dev = parseU($("#cDev").value, NEAR_DEC);
+  if (dev > 0n && dev < MIN_DEV) return toast("Buy at launch must be at least 0.01 NEAR, or leave it empty.", true);
   const btn = $("#cSubmit"); btn.disabled = true;
   try {
-    await callTx("Create " + symbol, CONFIG.factory, [fnCall("create_token", { name, symbol, tax_bps }, CONFIG.createGas, creationFee)]);
-    dlg.close(); $("#createForm").reset();
+    await callTx("Create " + symbol, CONFIG.factory, [fnCall("create_token", { name, symbol, tax_bps, icon: iconData, description, website, twitter, telegram }, CONFIG.createGas, creationFee + dev)]);
+    dlg.close(); $("#createForm").reset(); iconData = null; $("#imgBox").classList.remove("has");
     await loadTokens();
     const mine = tokens.find(t => t.symbol === symbol && t.creator === account); if (mine) selectToken(mine.token_id);
   } catch (_) {} finally { btn.disabled = false; }
