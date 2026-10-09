@@ -156,6 +156,9 @@ body[data-view="feed"] .wrap, body[data-view="market"] .wrap{grid-template-colum
 .fside .when{font-size:12px;color:var(--muted)}
 .tradebtn{border:1.5px solid var(--line);background:none;border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;letter-spacing:.06em;cursor:pointer}
 .tradebtn:hover{border-color:var(--arc);color:var(--arc)}
+.pct{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.pct .chip{padding:8px 0;font-weight:700;font-size:14px}
+.pct .chip:hover{border-color:var(--arc);color:var(--arc)}
 .total{display:flex;justify-content:space-between;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
 .grad{padding:14px;border-radius:10px;background:#2A2410;border:1px solid var(--gold);font-size:14px}
 table{width:100%;border-collapse:collapse;font-size:14px}
@@ -247,7 +250,12 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
             <button class="tab" role="tab" aria-selected="false" data-mode="sell">Sell</button>
           </div>
           <div class="field"><input id="amount" inputmode="decimal" placeholder="0.00" aria-label="Amount"><span class="unit" id="amtUnit">NEAR</span></div>
-          <div class="row"><span class="muted">Balance</span><button class="chip" id="maxBtn" title="Use full balance"><span id="bal">--</span></button></div>
+          <div class="row"><span class="muted">Balance</span><span class="small" id="bal">--</span></div>
+          <div class="pct" id="pctRow" role="group" aria-label="Amount shortcuts">
+            <button type="button" class="chip" data-p="25">25%</button>
+            <button type="button" class="chip" data-p="50">50%</button>
+            <button type="button" class="chip" data-p="100">100%</button>
+          </div>
           <div class="row" style="align-items:flex-end;margin-top:16px"><span class="muted">You receive</span><span class="out" id="quote">--</span></div>
           <div class="row"><span class="muted">Slippage</span>
             <div class="chips" id="slip">
@@ -785,6 +793,7 @@ document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () =>
   mode = b.dataset.mode;
   document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === b));
   $("#amount").value = ""; lastQuote = 0n; $("#quote").textContent = "--";
+  $("#pctRow").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", "false"));
   $("#tradeNote").textContent = mode === "buy" ? "Your first buy of a token adds a small storage fee (about 0.00125 NEAR) so your balance can be stored." : "Selling attaches 1 yoctoNEAR, which your wallet uses to confirm it's really you.";
   balanceUI(); updateTradeButton();
 }));
@@ -792,11 +801,20 @@ $("#slip").addEventListener("click", (e) => {
   const b = e.target.closest(".chip"); if (!b) return; slipBps = Number(b.dataset.bps);
   $("#slip").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b));
 });
-$("#maxBtn").addEventListener("click", () => {
-  if (!sel || !account) return;
-  const v = mode === "buy" ? (sel.nearBal > CONFIG.gasReserve ? sel.nearBal - CONFIG.gasReserve : 0n) : sel.tokenBal;
-  $("#amount").value = toUnitsStr(v, mode === "buy" ? NEAR_DEC : sel.decimals); getQuote();
+$("#pctRow").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  if (!account) return signIn();
+  if (!sel) return;
+  const p = BigInt(b.dataset.p);
+  // Buying keeps a little NEAR back for gas (and the first-buy storage fee); selling can use it all.
+  const base = mode === "buy" ? (sel.nearBal > CONFIG.gasReserve ? sel.nearBal - CONFIG.gasReserve : 0n) : (sel.tokenBal || 0n);
+  const v = base * p / 100n;
+  if (v === 0n) return toast(mode === "buy" ? "You don't have enough NEAR to buy yet." : "You don't hold any of this token yet.", true);
+  $("#amount").value = toUnitsStr(v, mode === "buy" ? NEAR_DEC : sel.decimals);
+  $("#pctRow").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b));
+  getQuote();
 });
+$("#amount").addEventListener("input", () => $("#pctRow").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", "false")));
 let qT; $("#amount").addEventListener("input", () => { clearTimeout(qT); qT = setTimeout(getQuote, 300); });
 function balanceUI() {
   if (!sel) return;
@@ -911,7 +929,7 @@ const normLink = (v, base) => {
 };
 function updateTotal() {
   const dev = parseU($("#cDev").value, NEAR_DEC);
-  $("#cTotal").textContent = fmtU(creationFee + dev, NEAR_DEC, 3) + " NEAR" + (dev > 0n ? ` (${fmtU(creationFee, NEAR_DEC, 3)} fee + ${fmtU(dev, NEAR_DEC, 3)} buy)` : "");
+  $("#cTotal").textContent = (creationFee + dev === 0n ? "Free" : fmtU(creationFee + dev, NEAR_DEC, 3) + " NEAR") + (dev > 0n ? ` (${creationFee === 0n ? "free launch" : fmtU(creationFee, NEAR_DEC, 3) + " fee"} + ${fmtU(dev, NEAR_DEC, 3)} buy)` : "");
 }
 $("#cDev").addEventListener("input", updateTotal);
 const fee = { dest: "self", buy: 100, sell: 100, split: 5000 };
@@ -938,7 +956,12 @@ async function openCreate() {
   creationFee = PREVIEW ? Y(3.5) : B(await tryView(CONFIG.factory, "get_creation_fee", {}, "0"));
   const plat = PREVIEW ? { fee_bps: 50 } : await tryView(CONFIG.factory, "get_platform_fee", {}, null);
   const platTxt = plat && plat.fee_bps ? ` SafeNear also takes a ${plat.fee_bps / 100}% platform fee on every buy and sell.` : "";
-  $("#cFee").textContent = `The creation fee is ${fmtU(creationFee, NEAR_DEC, 3)} NEAR. Most of it pays for the storage your token contract uses on NEAR.${platTxt}`;
+  const mode = PREVIEW ? null : await tryView(CONFIG.factory, "get_launch_mode", {}, null);
+  $("#cFee").textContent = mode?.subsidized
+    ? (creationFee === 0n
+        ? `Launching is free: SafeNear pays the storage for your token. ${mode.free_launches_per_day} free launch per account per day.${platTxt}`
+        : `The launch fee is ${fmtU(creationFee, NEAR_DEC, 3)} NEAR; SafeNear covers the rest of the storage. ${mode.free_launches_per_day} launch per account per day at this price.${platTxt}`)
+    : `The creation fee is ${fmtU(creationFee, NEAR_DEC, 3)} NEAR. Most of it pays for the storage your token contract uses on NEAR.${platTxt}`;
   updateTotal();
   dlg.showModal();
 }
