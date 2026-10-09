@@ -223,8 +223,10 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
         <div class="links hidden" id="tLinks"></div>
         <div class="facts">
           <div><span>Price</span><strong id="tPrice">--</strong></div>
+          <div><span>Market cap</span><strong id="tMcap">--</strong></div>
           <div><span>Tax</span><strong id="tTax">--</strong></div>
           <div><span>Tax goes to</span><strong id="tSplit">--</strong></div>
+          <div><span>Platform fee</span><strong id="tPlat">--</strong></div>
           <div><span>Creator</span><strong id="tCreator">--</strong></div>
           <div><span>Dev bought</span><strong id="tDev">--</strong></div>
           <div><span>Contract</span><strong><a id="tAddr" target="_blank" rel="noopener">--</a></strong></div>
@@ -478,6 +480,13 @@ const safeImg = (u) => typeof u === "string" && (/^data:image\/(png|jpeg|webp|gi
 const safeUrl = (u) => { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch { return null; } };
 const iconHtml = (t, fallback) => { const src = safeImg(t?.icon); return src ? `<img src="${esc(src)}" alt="">` : esc((fallback || "?").slice(0, 2)); };
 const TOTAL_SUPPLY = 10n ** 27n;
+// Small prices with 3 significant digits, e.g. 0.00000000183
+const fmtSmall = (yocto) => {
+  const n = Number(B(yocto)) / 1e24;
+  if (!isFinite(n) || n <= 0) return "0";
+  if (n >= 1) return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
+  return n.toFixed(Math.min(20, -Math.floor(Math.log10(n)) + 2));
+};
 const toUnitsStr = (v, dec) => { const s = fmtU(v, dec, dec).replace(/,/g, ""); return s.startsWith("<") ? "0" : s; };
 function toast(html, isErr = false, ms = 6000) {
   const t = $("#toast"); t.innerHTML = html; t.className = "show" + (isErr ? " err" : "");
@@ -639,7 +648,7 @@ const DEMO_INFO = {
   "bull.safenear.testnet": { icon: null, description: "", dev_buy_tokens: String(10n * 10n ** 24n) },
 };
 const DEMO = [
-  { token_id: "dash.safenear.testnet", name: "Dash Runner", symbol: "DASH", creator: "tagabukid.testnet", curve: { near_reserve: Y(612), graduation_threshold: Y(1000), graduated: false, buy_tax_bps: 100, sell_tax_bps: 100, burn_bps: 5000, fee_recipient: "tagabukid.testnet", price: Y(0.0000041) } },
+  { token_id: "dash.safenear.testnet", name: "Dash Runner", symbol: "DASH", creator: "tagabukid.testnet", curve: { near_reserve: Y(612), graduation_threshold: Y(1000), graduated: false, buy_tax_bps: 100, sell_tax_bps: 100, burn_bps: 5000, fee_recipient: "tagabukid.testnet", platform_fee_bps: 50, price: Y(0.0000041) } },
   { token_id: "pengu.safenear.testnet", name: "Safe Penguin", symbol: "PENGU", creator: "tagabukid.testnet", curve: { near_reserve: Y(1000), graduation_threshold: Y(1000), graduated: true, buy_tax_bps: 200, sell_tax_bps: 300, burn_bps: 10000, fee_recipient: "tagabukid.testnet", price: Y(0.0000088), pool_id: 0 } },
   { token_id: "bull.safenear.testnet", name: "Near Bull", symbol: "BULL", creator: "someone.testnet", curve: { near_reserve: Y(87.5), graduation_threshold: Y(1000), graduated: false, buy_tax_bps: 0, sell_tax_bps: 0, burn_bps: 0, fee_recipient: "someone.testnet", price: Y(0.0000012) } },
 ];
@@ -724,10 +733,12 @@ async function refreshSelected() {
   $("#tLinks").classList.toggle("hidden", !links.length);
   const devT = B(info.dev_buy_tokens);
   $("#tDev").textContent = devT > 0n ? (Number(devT * 10000n / TOTAL_SUPPLY) / 100).toFixed(2) + "% of supply" : "Nothing";
-  $("#tPrice").textContent = sel.price != null ? fmtU(sel.price, NEAR_DEC, 8) + " NEAR" : "--";
+  $("#tPrice").textContent = sel.price != null ? fmtSmall(sel.price) + " NEAR" : "--";
+  $("#tMcap").textContent = sel.price != null ? fmtU(B(sel.price) * 1_000_000_000n, NEAR_DEC, 0) + " NEAR" : "--";
   const bt = sel.buy_tax_bps ?? sel.tax_bps, st = sel.sell_tax_bps ?? sel.tax_bps;
   $("#tTax").textContent = bt != null ? (Number(bt) || Number(st) ? `Buy ${Number(bt) / 100}% · Sell ${Number(st) / 100}%` : "None") : "--";
   const burnPct = Number(sel.burn_bps || 0) / 100, wallet = sel.fee_recipient || sel.creator;
+  $("#tPlat").textContent = sel.platform_fee_bps != null ? (Number(sel.platform_fee_bps) ? Number(sel.platform_fee_bps) / 100 + "%" : "None") : "None";
   $("#tSplit").textContent = !(Number(bt) || Number(st)) ? "No tax" : burnPct >= 100 ? "100% burned" : burnPct <= 0 ? `100% to ${short(wallet)}` : `${100 - burnPct}% to ${short(wallet)}, ${burnPct}% burned`;
   $("#tCreator").textContent = short(sel.creator || listed.creator);
   const a = $("#tAddr"); a.textContent = short(sel.id); a.href = `${NET.explorer}/address/${sel.id}`;
@@ -741,7 +752,7 @@ async function refreshSelected() {
     ? `This token has graduated. It now trades on Ref Finance with locked liquidity. <a id="poolLink" target="_blank" rel="noopener" href="${sel.pool_id != null ? NET.dexPool(sel.pool_id) : "#"}">Open the pool</a>`
     : `The curve is full. Liquidity is moving to Ref Finance: step ${step} of 7 done. Anyone can push the next step.`;
   $("#migrateBtn").classList.toggle("hidden", locked);
-  $("#safety").innerHTML = ["Fixed supply", "No admin keys", `Tax capped at ${(sel.max_tax_bps ?? 400) / 100}% a side`, locked ? "LP locked on Ref" : "LP locks at graduation"]
+  $("#safety").innerHTML = ["Fixed supply", "No admin keys", `Tax capped at ${(sel.max_tax_bps ?? 400) / 100}%${sel.buy_tax_bps != null ? " a side" : ""}`, locked ? "LP locked on Ref" : "LP locks at graduation"]
     .map(t => `<span class="safe">${t}</span>`).join("");
   drawCurve(pct(sel) / 100);
   balanceUI(); updateTradeButton();
@@ -799,7 +810,7 @@ async function getQuote() {
   $("#quote").textContent = "…";
   let out;
   if (PREVIEW) { // rough preview math from the displayed price
-    const t = Number((mode === "buy" ? sel.buy_tax_bps : sel.sell_tax_bps) ?? sel.tax_bps ?? 0);
+    const t = Number((mode === "buy" ? sel.buy_tax_bps : sel.sell_tax_bps) ?? sel.tax_bps ?? 0) + Number(sel.platform_fee_bps || 0);
     const p = B(sel.price) || 1n, net = amt * BigInt(10000 - t) / 10000n;
     out = mode === "buy" ? net * 10n ** BigInt(sel.decimals) / p : net * p / 10n ** BigInt(sel.decimals);
   } else {
@@ -925,7 +936,9 @@ document.querySelectorAll("#createForm [data-group]").forEach(g => g.addEventLis
 async function openCreate() {
   renderFees();
   creationFee = PREVIEW ? Y(3.5) : B(await tryView(CONFIG.factory, "get_creation_fee", {}, "0"));
-  $("#cFee").textContent = `The creation fee is ${fmtU(creationFee, NEAR_DEC, 3)} NEAR. Most of it pays for the storage your token contract uses on NEAR.`;
+  const plat = PREVIEW ? { fee_bps: 50 } : await tryView(CONFIG.factory, "get_platform_fee", {}, null);
+  const platTxt = plat && plat.fee_bps ? ` SafeNear also takes a ${plat.fee_bps / 100}% platform fee on every buy and sell.` : "";
+  $("#cFee").textContent = `The creation fee is ${fmtU(creationFee, NEAR_DEC, 3)} NEAR. Most of it pays for the storage your token contract uses on NEAR.${platTxt}`;
   updateTotal();
   dlg.showModal();
 }
