@@ -36,6 +36,8 @@ a{color:var(--arc)}
 .pill button[aria-current="page"]{color:var(--ink);background:var(--arc-soft)}
 .more{position:relative}
 .menu{position:absolute;right:0;top:calc(100% + 10px);min-width:220px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,.45);z-index:30}
+.menu button{display:block;width:100%;text-align:left;justify-content:flex-start;padding:9px 12px!important;border-radius:8px!important;color:var(--ink)!important;font-size:14px}
+.menu button:hover{background:var(--arc-soft)!important;color:var(--arc)!important}
 .menu a{display:block;padding:9px 12px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:14px;font-weight:600}
 .menu a:hover{background:var(--arc-soft);color:var(--arc)}
 .hright #netDot,.hright #netLabel,.hright #createBtn{display:none!important}
@@ -212,6 +214,12 @@ body[data-view="analytics"] .wrap{grid-template-columns:1fr;max-width:1100px}
 @media (max-width:480px){.flip.big i{min-width:26px;height:38px;font-size:21px}}
 .an-table td{vertical-align:middle}
 .spark{display:block}
+body[data-view="portfolio"] .wrap{grid-template-columns:1fr;max-width:1000px}
+.pf-av{width:52px!important;height:52px!important;font-size:18px!important;border-radius:12px!important}
+.pf-launch{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.pf-launch:last-child{border-bottom:0}
+.pf-launch .mono-ic{width:40px;height:40px}
+.chip{text-decoration:none;color:inherit}
 .total{display:flex;justify-content:space-between;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
 .grad{padding:14px;border-radius:10px;background:#2A2410;border:1px solid var(--gold);font-size:14px}
 table{width:100%;border-collapse:collapse;font-size:14px}
@@ -251,12 +259,13 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
     <button data-action="launch">Launch</button>
     <button data-view="feed">Feed</button>
     <button data-view="analytics">Analytics</button>
-    <button data-view="airdrop">Airdrop</button>
+    <button data-view="portfolio">Portfolio</button>
     <button data-view="market">Market</button>
-    <button data-view="stocks">Stocks</button>
     <div class="more">
       <button type="button" id="moreBtn" aria-expanded="false" aria-haspopup="true">More <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
       <div class="menu hidden" id="moreMenu">
+        <button type="button" data-view="stocks">Stocks</button>
+        <button type="button" data-view="airdrop">Airdrop points</button>
         <a href="https://near-faucet.io/" target="_blank" rel="noopener">Testnet faucet</a>
         <a href="https://docs.near.org/faucet" target="_blank" rel="noopener">NEAR faucet (docs)</a>
         <a href="https://github.com/tagabukid/safenear-contracts" target="_blank" rel="noopener">Contracts on GitHub</a>
@@ -388,6 +397,50 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
       <p class="note" id="mktSrc"></p>
     </section>
 
+    <section id="pfBox" data-views="portfolio">
+      <div class="panel empty hidden" id="pfConnect">
+        <h1>Your portfolio</h1>
+        <p>Connect your NEAR wallet to see the tokens you hold, what they're worth, the tokens you launched, and your airdrop points.</p>
+        <button class="btn arc" id="pfConnectBtn">Connect wallet</button>
+      </div>
+      <div id="pfMain" class="hidden">
+        <div class="an-card pf-card">
+          <div class="an-top">
+            <div class="an-brand"><span class="mono-ic pf-av" id="pfAv"></span><div><b id="pfAcct">--</b><span class="an-sub">PORTFOLIO</span></div></div>
+            <div class="chips"><a class="chip" id="pfExplorer" target="_blank" rel="noopener">Explorer</a><button class="chip" id="pfSignOut">Sign out</button></div>
+          </div>
+          <div class="an-big">
+            <div><span class="an-lbl">TOTAL VALUE</span><div class="flip big" id="pfTotal">--</div><span class="an-cap" id="pfTotalCap"></span></div>
+            <div><span class="an-lbl">NEAR BALANCE</span><div class="flip big" id="pfNear">--</div><span class="an-cap" id="pfNearCap"></span></div>
+            <div><span class="an-lbl">TOKENS HELD</span><div class="flip big" id="pfCount">--</div><span class="an-cap" id="pfTokCap"></span></div>
+          </div>
+          <div class="an-small">
+            <div><span class="an-lbl">AIRDROP POINTS</span><div class="flip" id="pfPts">--</div></div>
+            <div><span class="an-lbl">RANK</span><div class="flip" id="pfRank">--</div></div>
+            <div><span class="an-lbl">TOKENS LAUNCHED</span><div class="flip" id="pfLaunched">--</div></div>
+            <div><span class="an-lbl">TRADES (RECENT)</span><div class="flip" id="pfTrades">--</div></div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:18px">
+          <h2>Holdings</h2>
+          <div class="scroll"><table>
+            <thead><tr><th>Token</th><th class="num">Balance</th><th class="num mkt-hide">Share</th><th class="num">Value</th><th></th></tr></thead>
+            <tbody id="pfHold"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+          </table></div>
+          <p class="note">Value is what you'd get selling now (after tax and fees). Graduated tokens are valued at their last curve price.</p>
+        </div>
+        <div class="panel" style="margin-top:18px">
+          <h2>Your launches</h2>
+          <div id="pfLaunches"><p class="muted">Loading…</p></div>
+        </div>
+        <div class="panel" style="margin-top:18px">
+          <h2>Recent activity</h2>
+          <div id="pfActivity"><p class="muted">Loading…</p></div>
+          <p class="note"><a href="?view=airdrop" id="pfToAirdrop">See the airdrop leaderboard and link your mainnet wallet →</a></p>
+        </div>
+      </div>
+    </section>
+
     <section id="anBox" data-views="analytics">
       <div class="an-head">
         <div><h2 style="font-size:32px;margin-bottom:6px">Analytics</h2>
@@ -466,7 +519,7 @@ dialog::backdrop{background:rgba(2,10,12,.7)}
   <button data-view="board" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Board</button>
   <button data-view="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Feed</button>
   <button data-action="launch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2M9 12a22 22 0 0 1 11-9c0 4-2 8-9 11zM9 12l3 3M14 6.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0"/></svg>Launch</button>
-  <button data-view="airdrop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>Airdrop</button>
+  <button data-view="portfolio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h18v13H3zM16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M3 12h18"/></svg>Portfolio</button>
   <button data-view="market"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>Market</button>
 </nav>
 
@@ -683,7 +736,7 @@ async function initSelector() {
   ]), 15000, "Wallet selector");
   selector = await setupWalletSelector({ network: CONFIG.networkId, modules: [setupMeteorWallet(), setupHereWallet(), setupMyNearWallet()] });
   modal = setupModal(selector, { contractId: SIGNIN_CONTRACT });
-  const sync = (state) => { account = state.accounts.find(a => a.active)?.accountId || null; walletUI(); refreshSelected(); loadPoints(); };
+  const sync = (state) => { account = state.accounts.find(a => a.active)?.accountId || null; walletUI(); refreshSelected(); loadPoints(); if (curView === "portfolio") loadPortfolio(); };
   sync(selector.store.getState());
   selector.store.observable.subscribe(sync);
   walletKind = "selector";
@@ -706,7 +759,7 @@ async function initMyNearWallet() {
   mnw = new N.WalletConnection(near, "safenear");
   account = mnw.getAccountId() || null;
   walletKind = "mnw";
-  walletUI(); refreshSelected(); loadPoints();
+  walletUI(); refreshSelected(); loadPoints(); if (curView === "portfolio") loadPortfolio();
 }
 
 async function initWallet() {
@@ -738,7 +791,7 @@ function walletUI() {
 }
 $("#connectBtn").addEventListener("click", async () => {
   if (!account) return signIn();
-  if (confirm(`Sign out ${account}?`)) await signOut();
+  setView("portfolio");
 });
 
 async function callTx(label, receiverId, actions) {
@@ -1280,9 +1333,95 @@ for (const [id, key] of [["#xLink", "x"], ["#tgLink", "telegram"]]) {
   if (u) { $(id).href = u; $(id).classList.remove("hidden"); }
 }
 
+/* ---------------- portfolio ---------------- */
+let pfSeq = 0;
+async function loadPortfolio() {
+  const seq = ++pfSeq;
+  $("#pfConnect").classList.toggle("hidden", !!account);
+  $("#pfMain").classList.toggle("hidden", !account);
+  if (!account) return;
+  $("#pfAcct").textContent = short(account);
+  $("#pfAv").textContent = account.slice(0, 2).toUpperCase();
+  $("#pfExplorer").href = `${NET.explorer}/address/${encodeURIComponent(account)}`;
+  const nearUsd = await nearUsdPrice();
+  const list = PREVIEW ? DEMO.map(d => ({ ...d, ...d.curve, icon: DEMO_INFO[d.token_id]?.icon })) : tokens;
+
+  const [nearBal, balances, pts] = await Promise.all([
+    PREVIEW ? Y(42.5) : nearBalance(account),
+    Promise.all(list.map(t => PREVIEW ? (t.symbol === "BULL" ? "0" : String(12_500_000n * 10n ** 18n)) : tryView(t.token_id, "ft_balance_of", { account_id: account }, "0"))),
+    PREVIEW ? { points: 1310 } : tryView(CONFIG.factory, "get_points", { account_id: account }, null),
+  ]);
+  const held = list.map((t, i) => ({ t, bal: B(balances[i]) })).filter(h => h.bal > 0n);
+  const values = await Promise.all(held.map(h => {
+    if (PREVIEW || h.t.graduated) return Promise.resolve(B(h.t.price) * h.bal / 10n ** 18n);
+    return tryView(h.t.token_id, "get_sell_quote", { tokens_in: h.bal.toString() }, "0").then(B);
+  }));
+  held.forEach((h, i) => h.value = values[i]);
+  held.sort((a, b) => (b.value > a.value ? 1 : -1));
+  if (seq !== pfSeq) return;
+
+  const tokVal = held.reduce((a, h) => a + h.value, 0n);
+  const total = B(nearBal) + tokVal;
+  const asUsd = (y) => nearUsd ? usd(Number(y) / 1e24 * nearUsd) : "";
+  flip($("#pfTotal"), compactNear(total));
+  $("#pfTotalCap").textContent = `NEAR${nearUsd ? ` · ≈ ${asUsd(total)}${CONFIG.networkId === "testnet" ? " (TESTNET)" : ""}` : ""}`;
+  flip($("#pfNear"), compactNear(nearBal));
+  $("#pfNearCap").textContent = `NEAR${nearUsd ? ` · ≈ ${asUsd(nearBal)}` : ""}`;
+  flip($("#pfCount"), String(held.length));
+  $("#pfTokCap").textContent = held.length ? `${compactNear(tokVal)} NEAR IN TOKENS` : "NONE YET";
+
+  // points + rank
+  flip($("#pfPts"), pts ? Number(pts.points).toLocaleString() : "0");
+  const rankIdx = (typeof board !== "undefined" && board.length) ? board.findIndex(r => r.account_id === account) : -1;
+  flip($("#pfRank"), rankIdx >= 0 ? "#" + (rankIdx + 1) : "--");
+
+  // holdings
+  $("#pfHold").innerHTML = held.length ? held.map(h => {
+    const t = h.t, share = Number(h.bal * 1000000n / TOTAL_SUPPLY) / 10000;
+    return `<tr>
+      <td><span class="mkt-tok"><span class="mono-ic">${iconHtml(t, t.symbol)}</span><span><b>$${esc(t.symbol)}</b><span class="small muted">${esc(t.name || "")}${t.graduated ? " · graduated" : ""}</span></span></span></td>
+      <td class="num">${fmtU(h.bal, 18, 2)}</td>
+      <td class="num mkt-hide">${share < 0.01 ? "<0.01" : share.toFixed(2)}%</td>
+      <td class="num"><b>${fmtU(h.value, NEAR_DEC, 3)} NEAR</b><br><span class="small muted">${asUsd(h.value)}</span></td>
+      <td class="num"><button class="tradebtn" data-id="${esc(t.token_id)}">TRADE</button></td></tr>`;
+  }).join("") : `<tr><td colspan="5" class="muted">You don't hold any SafeNear tokens yet. <a href="?view=board">Browse the board</a> or launch your own.</td></tr>`;
+
+  // launches
+  const mine = list.filter(t => t.creator === account);
+  flip($("#pfLaunched"), String(mine.length));
+  $("#pfLaunches").innerHTML = mine.length ? mine.map(t => `<div class="pf-launch">
+      <span class="mono-ic">${iconHtml(t, t.symbol)}</span>
+      <span><b>$${esc(t.symbol)}</b> <span class="small muted">${esc(t.name || "")}</span>
+        <span class="bar" style="display:block;margin-top:8px"><i class="${t.graduated ? "done" : ""}" style="width:${pct(t)}%"></i></span></span>
+      <span class="num"><span class="small muted">${t.graduated ? "Graduated" : pct(t).toFixed(1) + "% to graduation"}</span><br><button class="tradebtn" data-id="${esc(t.token_id)}" style="margin-top:6px">OPEN</button></span>
+    </div>`).join("") : `<p class="muted">You haven't launched a token yet. <button class="btn arc" id="pfLaunchBtn" style="margin-left:8px">Launch one</button></p>`;
+  $("#pfLaunchBtn")?.addEventListener("click", openCreate);
+
+  // activity (from each token's recent trades)
+  const lists = PREVIEW ? list.map(t => demoTrades().map(r => ({ ...r, account_id: r.account_id === "ben.testnet" ? account : r.account_id }))) :
+    await Promise.all(list.map(t => tryView(t.token_id, "get_recent_trades", { limit: 30 }, [])));
+  if (seq !== pfSeq) return;
+  const acts = lists.flatMap((l, i) => (l || []).filter(r => r.account_id === account).map(r => ({ ...r, token: list[i] })))
+    .sort((a, b) => Number(b.timestamp_ms) - Number(a.timestamp_ms)).slice(0, 20);
+  flip($("#pfTrades"), String(acts.length));
+  $("#pfActivity").innerHTML = acts.length ? acts.map(r => {
+    const buy = r.side === "buy", t = r.token;
+    return `<div class="fitem"><span class="ticon">${iconHtml(t, t.symbol)}</span>
+      <div class="fline">You <span class="${buy ? "b" : "s"}">${buy ? "bought" : "sold"}</span> <span class="amt">${fmtU(r.near_amount, NEAR_DEC, 3)} NEAR</span> of <b>$${esc(t.symbol)}</b>
+        <div class="fmeta">${fmtU(r.token_amount, 18, 0)} tokens</div></div>
+      <div class="fside"><span class="when">${ago(Number(r.timestamp_ms))}</span><button class="tradebtn" data-id="${esc(t.token_id)}">TRADE</button></div></div>`;
+  }).join("") : `<p class="muted">No recent trades from this wallet.</p>`;
+}
+$("#pfBox").addEventListener("click", (e) => {
+  const b = e.target.closest(".tradebtn[data-id]"); if (b) { setView("board"); selectToken(b.dataset.id); }
+});
+$("#pfConnectBtn").addEventListener("click", () => signIn());
+$("#pfSignOut").addEventListener("click", async () => { if (confirm(`Sign out ${account}?`)) { await signOut(); loadPortfolio(); } });
+$("#pfToAirdrop").addEventListener("click", (e) => { e.preventDefault(); setView("airdrop"); });
+
 /* ---------------- analytics ---------------- */
 let anHours = 24, anTopRange = "24h", anSeq = 0, anNearUsd = 0, anUpdatedAt = 0;
-const flip = (el, text) => { el.innerHTML = [...String(text)].map(c => `<i>${esc(c)}</i>`).join(""); };
+const flip = (el, text) => { el.innerHTML = [...String(text)].map(c => c === " " ? `<span style="width:6px"></span>` : `<i>${esc(c)}</i>`).join(""); };
 const compactNear = (yocto) => {
   const n = Number(B(yocto)) / 1e24;
   if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
@@ -1404,41 +1543,66 @@ const GOLD = { PAXG: "Pax Gold", XAUT: "Tether Gold", XAUt: "Tether Gold", XAUT0
 const STOCK_ORDER = ["NVDA", "TSLA", "AAPL", "GOOGL", "META", "MSFT", "AMZN", "HOOD", "INTC", "SPY", "QQQ"];
 const STOCK_COLORS = ["#76B900", "#CC0000", "#3A3A3A", "#4285F4", "#0866FF", "#737373", "#FF9900", "#1F2A24", "#0071C5", "#8B5CF6", "#0EA5E9", "#E11D48"];
 let stkSeq = 0;
+// Ondo Global Markets tickers (the "on" tokens on near.com / NEAR Intents)
+const ONDO_TICKERS = ["NVDA", "TSLA", "AAPL", "GOOGL", "META", "MSFT", "AMZN", "HOOD", "INTC", "AMD", "NFLX", "COIN",
+  "PLTR", "MSTR", "CRCL", "SPY", "QQQ", "IVV", "AVGO", "ORCL", "IAU", "SLV", "GLD", "TLT"];
+Object.assign(STOCK_NAMES, { IAU: "iShares Gold Trust", SLV: "iShares Silver Trust", GLD: "SPDR Gold Shares", TLT: "20+ Year Treasury ETF" });
+let stkCache = { at: 0, rows: [] };
+async function dexPrice(symbol) {
+  try {
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(symbol)}`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    const pairs = (j.pairs || []).filter(p => (p.baseToken?.symbol || "").toLowerCase() === symbol.toLowerCase() && Number(p.priceUsd) > 0);
+    if (!pairs.length) return null;
+    pairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0));
+    return { price: Number(pairs[0].priceUsd), chain: pairs[0].chainId, url: pairs[0].url };
+  } catch { return null; }
+}
 async function loadStocks() {
   const seq = ++stkSeq;
-  let list;
-  try {
-    const r = await fetch("https://1click.chaindefuser.com/v0/tokens", { headers: { Accept: "application/json" } });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    list = await r.json();
-  } catch (e) {
-    if (seq === stkSeq) { $("#stkList").innerHTML = `<p class="muted" style="padding:16px">Couldn't load live stock prices right now. It retries every minute.</p>`; $("#stkSrc").textContent = ""; }
-    return;
-  }
-  if (seq !== stkSeq) return;
-  const nearUsd = Number((list.find(t => t.assetId === "nep141:wrap.near") || list.find(t => t.symbol === "wNEAR" || t.symbol === "NEAR") || {}).price) || 0;
+  // 1) NEAR Intents list: NEAR price, gold, and any "on" stocks it exposes publicly
+  let list = [];
+  try { const r = await fetch("https://1click.chaindefuser.com/v0/tokens"); if (r.ok) list = await r.json(); } catch {}
+  const nearUsd = Number((list.find(t => t.assetId === "nep141:wrap.near") || {}).price) || anNearUsd || 0;
   const seen = new Map();
   for (const t of list) {
     const sym = String(t.symbol || "");
     const m = sym.match(/^([A-Z.]{1,6})on$/);
     const ticker = m ? m[1] : GOLD[sym] ? sym : null;
     if (!ticker || !(Number(t.price) > 0)) continue;
-    const key = ticker.toUpperCase();
-    if (!seen.has(key)) seen.set(key, { ticker, isGold: !!GOLD[sym], name: GOLD[sym] || STOCK_NAMES[ticker] || ticker, price: Number(t.price), chain: t.blockchain });
+    if (!seen.has(ticker)) seen.set(ticker, { ticker, isGold: !!GOLD[sym], name: GOLD[sym] || STOCK_NAMES[ticker] || ticker, price: Number(t.price), src: "NEAR Intents" });
   }
+  // 2) Ondo stocks that aren't in the public list: price the same tokens from their DEX markets
+  const missing = ONDO_TICKERS.filter(t => !seen.has(t));
+  if (missing.length && (Date.now() - stkCache.at > 55000 || !stkCache.rows.length)) {
+    const got = await Promise.all(missing.map(t => dexPrice(t + "on")));
+    stkCache = { at: Date.now(), rows: missing.map((t, i) => got[i] && { ticker: t, isGold: false, name: STOCK_NAMES[t] || t, price: got[i].price, src: "DEX", url: got[i].url }).filter(Boolean) };
+  }
+  for (const r of stkCache.rows) if (!seen.has(r.ticker)) seen.set(r.ticker, r);
+  if (seq !== stkSeq) return;
   const rows = [...seen.values()].sort((a, b) => {
     const ia = STOCK_ORDER.indexOf(a.ticker), ib = STOCK_ORDER.indexOf(b.ticker);
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.isGold - b.isGold || a.ticker.localeCompare(b.ticker);
   });
-  $("#stkCount").textContent = rows.length ? String(rows.length) : "";
-  $("#stkList").innerHTML = rows.length ? rows.map((r, i) => `<div class="stk">
+  if (!rows.length) {
+    $("#stkList").innerHTML = `<p class="muted" style="padding:16px">Couldn't load live stock prices right now. It retries every minute.</p>`;
+    $("#stkSrc").textContent = ""; $("#stkCount").textContent = "";
+    return;
+  }
+  $("#stkCount").textContent = String(rows.length);
+  $("#stkList").innerHTML = rows.map((r, i) => {
+    const link = safeUrl(r.url || "");
+    return `<div class="stk"${link ? ` role="link" tabindex="0" data-url="${esc(link)}" style="cursor:pointer"` : ""}>
       <span class="logo" style="background:${STOCK_COLORS[i % STOCK_COLORS.length]}">${esc(r.ticker.slice(0, 4))}</span>
       <span><b>${esc(r.ticker)}${r.isGold ? "" : "<i>on</i>"}</b><br><span class="small muted">${esc(r.name)}</span></span>
       <span class="px"><strong>$${r.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong><span class="small muted">${nearUsd ? (r.price / nearUsd).toFixed(2) + " NEAR" : ""}</span></span>
-    </div>`).join("")
-    : `<p class="muted" style="padding:16px">No tokenized stocks are listed on NEAR Intents right now.</p>`;
-  $("#stkSrc").textContent = `Live prices from NEAR Intents (1Click). ${nearUsd ? "1 NEAR = $" + nearUsd.toFixed(2) + ". " : ""}Refreshes every minute.`;
+    </div>`;
+  }).join("");
+  const fromDex = rows.some(r => r.src === "DEX");
+  $("#stkSrc").textContent = `Live prices from NEAR Intents${fromDex ? " and the stocks' own DEX markets (Ondo tokens on Solana/Ethereum/BNB)" : ""}. ${nearUsd ? "1 NEAR = $" + nearUsd.toFixed(2) + ". " : ""}Refreshes every minute. Ondo Stocks aren't available to U.S. persons.`;
 }
+$("#stkList").addEventListener("click", (e) => { const el = e.target.closest(".stk[data-url]"); if (el) window.open(el.dataset.url, "_blank", "noopener"); });
 
 /* ---------------- views ---------------- */
 let curView = "board";
@@ -1453,12 +1617,16 @@ function setView(v) {
   if (v === "airdrop") loadPoints();
   if (v === "stocks") loadStocks();
   if (v === "analytics") loadAnalytics();
+  if (v === "portfolio") loadPortfolio();
   if (v === "market") loadMarket();
   if (v === "board" && sel) drawCurve(pct(sel) / 100);
 }
 document.querySelectorAll(".topnav, .bnav").forEach(n => n.addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
+  if (b.id === "moreBtn") return;
   if (b.dataset.action === "launch") return openCreate();
+  if (!b.dataset.view) return;
+  $("#moreMenu").classList.add("hidden"); $("#moreBtn").setAttribute("aria-expanded", "false");
   setView(b.dataset.view);
 }));
 
@@ -1530,7 +1698,8 @@ setInterval(() => { if (!document.hidden && curView === "market") loadMarket(); 
 setInterval(() => { if (!document.hidden && curView === "feed") loadFeed(); }, 15000);
 setInterval(() => { if (!document.hidden && curView === "stocks") loadStocks(); }, 60000);
 setInterval(() => { if (!document.hidden && curView === "analytics") loadAnalytics(); }, 20000);
-setView(["board", "feed", "market", "airdrop", "stocks", "analytics"].includes(params.get("view")) ? params.get("view") : "board");
+setInterval(() => { if (!document.hidden && curView === "portfolio" && account) loadPortfolio(); }, 20000);
+setView(["board", "feed", "market", "airdrop", "stocks", "analytics", "portfolio"].includes(params.get("view")) ? params.get("view") : "board");
 setInterval(() => { if (!document.hidden && !PREVIEW) { loadTape(); loadPoints(); } }, 20000);
 </script>
 </body>
